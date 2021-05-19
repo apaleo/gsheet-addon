@@ -1,30 +1,83 @@
 const apaleoApiUrl = "https://api.apaleo.com";
 
-function getApaleoAuthService() {
-  const scriptProperties = PropertiesService.getScriptProperties();
-  const CLIENT_ID = scriptProperties.getProperty('CLIENT_ID');
-  const CLIENT_SECRET = scriptProperties.getProperty('CLIENT_SECRET');
+const scriptProperties = PropertiesService.getScriptProperties();
+const authType = scriptProperties.getProperty("AUTH_TYPE");
+const isApaleoApp = authType === "authorization_code";
 
-  return (
-    OAuth2.createService("apaleoAPI")
-      .setAuthorizationBaseUrl("https://identity.apaleo.com/connect/authorize")
-      .setTokenUrl("https://identity.apaleo.com/connect/token")
-      .setClientId(CLIENT_ID)
-      .setClientSecret(CLIENT_SECRET)
-      .setCallbackFunction("authCallback")
+const userProperties = PropertiesService.getUserProperties();
+const ui = SpreadsheetApp.getUi();
+
+function setClientId() {
+  var response = ui.prompt(
+    "Authentication",
+    "Please provide your Client ID:",
+    ui.ButtonSet.OK_CANCEL
+  );
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    userProperties.setProperty("CLIENT_ID", response.getResponseText());
+  }
+}
+
+function setClientSecret() {
+  var response = ui.prompt(
+    "Authentication",
+    "Please provide your Client Secret:",
+    ui.ButtonSet.OK_CANCEL
+  );
+
+  if (response.getSelectedButton() == ui.Button.OK) {
+    userProperties.setProperty("CLIENT_SECRET", response.getResponseText());
+    const service = getApaleoAuthService();
+    service.reset();
+    service.exchangeGrant_();
+  }
+}
+
+function deleteCredential() {
+  userProperties.deleteProperty("CLIENT_ID").deleteProperty("CLIENT_SECRET");
+}
+
+function getApaleoAuthService() {
+  const properties = isApaleoApp ? scriptProperties : userProperties;
+
+  const CLIENT_ID = properties.getProperty("CLIENT_ID");
+  const CLIENT_SECRET = properties.getProperty("CLIENT_SECRET");
+
+  if (!CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error("Can not create apaleo client: credentials are missing.");
+  }
+
+  const service = OAuth2.createService("apaleoAPI")
+    .setAuthorizationBaseUrl("https://identity.apaleo.com/connect/authorize")
+    .setTokenUrl("https://identity.apaleo.com/connect/token")
+    .setClientId(CLIENT_ID)
+    .setClientSecret(CLIENT_SECRET)
+    // Set the property store where authorized tokens should be persisted.
+    .setPropertyStore(userProperties)
+    // Scripts that use the OAuth2 library heavily should enable caching on the service, so as to not exhaust their `PropertiesService` quotas.
+    .setCache(CacheService.getUserCache())
+    // A race condition can occur when two or more script executions are both trying to
+    // refresh an expired token at the same time. To prevent this, use locking to ensure that only one execution is refreshing
+    // the token at a time. To enable locking, simply add a `LockService` lock when
+    // configuring the service:
+    .setLock(LockService.getUserLock());
+
+  if (isApaleoApp) {
+    service
       .setScope(
         "offline_access openid profile accounting.read availability.read reports.read reservations.read identity:account-users.read"
       )
-      // Set the property store where authorized tokens should be persisted.
-      .setPropertyStore(PropertiesService.getUserProperties())
-      // Scripts that use the OAuth2 library heavily should enable caching on the service, so as to not exhaust their `PropertiesService` quotas.
-      .setCache(CacheService.getUserCache())
-      // A race condition can occur when two or more script executions are both trying to
-      // refresh an expired token at the same time. To prevent this, use locking to ensure that only one execution is refreshing
-      // the token at a time. To enable locking, simply add a `LockService` lock when
-      // configuring the service:
-      .setLock(LockService.getUserLock())
-  );
+      .setCallbackFunction("authCallback");
+  } else {
+    service
+      .setScope(
+        "accounting.read availability.read reports.read reservations.read identity:account-users.read"
+      )
+      .setGrantType("client_credentials");
+  }
+
+  return service;
 }
 
 /**
@@ -139,7 +192,8 @@ function getPropertyList() {
 }
 
 function getGrossTransactions(property, startDate, endDate) {
-  const endpointUrl = apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
+  const endpointUrl =
+    apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
 
   const options = {
     ...defaultOptions,

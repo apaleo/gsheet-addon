@@ -3,10 +3,20 @@
  * @param {Object} e The event parameter for a simple onOpen trigger.
  */
 function onOpen(e) {
-  SpreadsheetApp.getUi()
-    .createAddonMenu()
-    .addItem("Open Receivables & Liabilities", "openSidebar")
-    .addToUi();
+  const menu = SpreadsheetApp.getUi().createAddonMenu();
+  if (!isApaleoApp) {
+    menu
+      .addSubMenu(
+        SpreadsheetApp.getUi()
+          .createMenu("Authentication")
+          .addItem("Set Client ID", "setClientId")
+          .addItem("Set Client Secret", "setClientSecret")
+          .addItem("Delete all credentials", "deleteCredential")
+      )
+      .addSeparator();
+  }
+
+  menu.addItem("Open Receivables & Liabilities", "openSidebar").addToUi();
 
   if (e && e.authMode == ScriptApp.AuthMode.FULL) {
     openSidebar();
@@ -27,6 +37,7 @@ function openSidebar() {
 
   const template = HtmlService.createTemplateFromFile("Sidebar");
   template.isSignedIn = service.hasAccess();
+  template.isCustomApp = !isApaleoApp;
 
   const sidebar = template
     .evaluate()

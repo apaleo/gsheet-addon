@@ -48,16 +48,17 @@
         init() {
           this.inProgress = true;
 
-          scriptService
-            .getCurrentUserInfo()
-            .then((user) => {
+          (apaleoContext.isCustomApp
+             ? Promise.resolve({ isCustomApp: true })
+             : scriptService.getCurrentUserInfo()
+          ).then((user) => {
               this.user = user;
 
               return scriptService.getPropertyList();
             })
             .then((data) => {
               this.properties = this.user && (
-                this.user.isAccountAdmin
+                (this.user.isAccountAdmin || this.user.isCustomApp)
                    ? data
                    : data.filter(p => this.user.properties.indexOf(p.code) != -1)
               ) || [];
