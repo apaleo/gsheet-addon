@@ -1,0 +1,10 @@
+{
+  "name": "@apaleo/google-sheet-addon",
+  "version": "1.0.0",
+  "description": "apaleo Google Sheet Addon",
+  "author": "apaleo GmbH",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^2.3.0"
+  }
+}

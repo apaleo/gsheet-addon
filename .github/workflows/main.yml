@@ -1,0 +1,24 @@
+name: Update the remote apps script project
+on:
+  push:
+    branches: [master]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 12.x
+      - name: Install dependencies
+        run: yarn install
+      - name: Setup Clasp Token
+        uses: namaggarwal/clasp-token-action@v0.0.1
+        with:
+          client-id: ${{ secrets.CLASP_CLIENT_ID }}
+          client-secret: ${{ secrets.CLASP_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CLASP_REFRESH_TOKEN }}
+      - name: Updating the remote apps script project
+        run: yarn clasp push
+

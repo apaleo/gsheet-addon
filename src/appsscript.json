@@ -1,0 +1,32 @@
+{
+  "timeZone": "Europe/Berlin",
+  "dependencies": {
+    "libraries": [
+      {
+        "userSymbol": "OAuth2",
+        "version": "40",
+        "libraryId": "1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF"
+      }
+    ]
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/script.external_request"
+  ],
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+
+  "addOns": {
+    "common": {
+      "name": "apaleo Google Sheet Add-on",
+      "logoUrl": "https://store.apaleo.com/wp-content/uploads/sites/4/2021/05/Frame-3.png",
+      "openLinkUrlPrefixes": [
+        "https://app.apaleo.com",
+        "https://identity.apaleo.com"
+      ],
+      "homepageTrigger": { "enabled": false }
+    },
+    "sheets": {}
+  }
+}

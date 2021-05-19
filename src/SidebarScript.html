@@ -1,0 +1,119 @@
+<script>
+  Vue.use(VueMaterial.default);
+  Vue.config.errorHandler = (err, vm, info) => {
+    // Show any error but this one
+    if (err.message !== "Cannot read property 'badInput' of undefined") {
+      console.error(err);
+    }
+  };
+
+  function ScriptService() {
+    const self = this;
+
+    Object.entries(google.script.run).forEach(([ key, _ ]) => {
+      self[key] = promisify(key);
+    });
+  };
+
+  const scriptService = new ScriptService();
+
+  new Vue({
+      el: '#app',
+
+      data() {
+        return {
+          isSignedIn: apaleoContext.isSignedIn,
+          user: undefined,
+          properties: [],
+          selectedProperty: undefined,
+          arrivalDate: undefined,
+          departureDate: undefined,
+          inProgress: false
+        }
+      },
+      methods: {
+        signIn() {
+          scriptService
+            .getAuthorizationUrl()
+            .then((url) => window.open(url))
+            .catch((e) => this.onError(e));
+        },
+
+        signOut() {
+          scriptService
+            .signOut()
+            .then(() => this.isSignedIn = false);
+        },
+
+        init() {
+          this.inProgress = true;
+
+          scriptService
+            .getCurrentUserInfo()
+            .then((user) => {
+              this.user = user;
+
+              return scriptService.getPropertyList();
+            })
+            .then((data) => {
+              this.properties = this.user && (
+                this.user.isAccountAdmin
+                   ? data
+                   : data.filter(p => this.user.properties.indexOf(p.code) != -1)
+              ) || [];
+
+              this.inProgress = false;
+            })
+            .catch((e) => this.onError(e));
+        },
+
+        submit() {
+          const arrivalStr = getIsoDate(this.arrivalDate);
+          const departureStr = getIsoDate(this.departureDate);
+          const property = this.selectedProperty;
+
+          this.inProgress = true;
+
+          scriptService
+            .generateReport(property, arrivalStr, departureStr)
+            .then(() => this.inProgress = false)
+            .catch((e) => this.onError(e));
+        },
+
+        onError(error) {
+          if (error) {
+            scriptService.alert(error.message);
+          }
+
+          this.inProgress = false;
+        }
+      },
+      mounted() {
+        Intercom.getInstance().on('oauthComplete', (data) => {
+            this.isSignedIn = data.isSignedIn;
+            this.init();
+        });
+
+        if (this.isSignedIn) {
+          this.init();
+        }
+      }
+  });
+
+  function promisify(key) {
+      return function() {
+        const args = arguments;
+
+        return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              [key].apply(google.script.run, args);
+        });
+      };
+  };
+
+  function getIsoDate(date) {
+    return date && luxon.DateTime.fromJSDate(date).toISODate();
+  }
+</script>
