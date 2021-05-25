@@ -36,6 +36,7 @@ function setClientSecret() {
 
 function deleteCredential() {
   userProperties.deleteProperty("CLIENT_ID").deleteProperty("CLIENT_SECRET");
+  getApaleoAuthService().reset();
 }
 
 function getApaleoAuthService() {
@@ -43,10 +44,6 @@ function getApaleoAuthService() {
 
   const CLIENT_ID = properties.getProperty("CLIENT_ID");
   const CLIENT_SECRET = properties.getProperty("CLIENT_SECRET");
-
-  if (!CLIENT_ID || !CLIENT_SECRET) {
-    throw new Error("Can not create apaleo client: credentials are missing.");
-  }
 
   const service = OAuth2.createService("apaleoAPI")
     .setAuthorizationBaseUrl("https://identity.apaleo.com/connect/authorize")

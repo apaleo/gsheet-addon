@@ -22,7 +22,7 @@
 
       data() {
         return {
-          isSignedIn: apaleoContext.isSignedIn,
+          context: apaleoContext,
           user: undefined,
           properties: [],
           selectedProperty: undefined,
@@ -42,13 +42,13 @@
         signOut() {
           scriptService
             .signOut()
-            .then(() => this.isSignedIn = false);
+            .then(() => this.context.isSignedIn = false);
         },
 
         init() {
           this.inProgress = true;
 
-          (apaleoContext.isCustomApp
+          (this.context.isCustomApp
              ? Promise.resolve({ isCustomApp: true })
              : scriptService.getCurrentUserInfo()
           ).then((user) => {
@@ -91,11 +91,11 @@
       },
       mounted() {
         Intercom.getInstance().on('oauthComplete', (data) => {
-            this.isSignedIn = data.isSignedIn;
+            this.context.isSignedIn = data.isSignedIn;
             this.init();
         });
 
-        if (this.isSignedIn) {
+        if (this.context.isSignedIn) {
           this.init();
         }
       }

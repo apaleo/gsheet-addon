@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic|Material+Icons">
-    <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/vue-material.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/vue-material/dist/theme/default.css">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic|Material+Icons"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/vue-material/dist/vue-material.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/vue-material/dist/theme/default.css"
+    />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intercom.js/0.1.4/intercom.min.js"></script>
 
     <?!= include('SidebarStylesheet'); ?>
-</head>
-<body>
+  </head>
+  <body>
     <div id="app">
-      <div v-if="isSignedIn">
+      <div v-if="context.isSignedIn">
         <div class="row">
           <md-field>
             <label for="property">Property</label>
             <md-select v-model="selectedProperty" name="property" id="property">
-                <md-option
-                  v-for="property in properties"
-                  :value="property.code"
-                >{{ property.name }}</md-option>
+              <md-option v-for="property in properties" :value="property.code"
+                >{{ property.name }}</md-option
+              >
             </md-select>
           </md-field>
         </div>
@@ -40,16 +48,21 @@
             <md-icon>whatshot</md-icon>
             Generate
           </md-button>
-          <md-button @click="signOut">
-            Sign out
-          </md-button>
+          <md-button v-if="!context.isCustomApp" @click="signOut"> Sign out </md-button>
         </div>
       </div>
-      <div v-if="!isSignedIn">
-        <p>Please sign in to your Apaleo account to continue.</p>
-        <md-button class="md-raised" @click="signIn">
-          Sign in
-        </md-button>
+      <div v-if="!context.isSignedIn">
+        <div v-if="context.isCustomApp">
+          <p>
+            Please open add-on menu <b>Add-ons</b> &gt;&gt; <b>apaleo</b> &gt;&gt;
+            <b>Authentication</b> and provide Client ID and Client Secret to
+            authorize in apaleo, then reopen the sidebar.
+          </p>
+        </div>
+        <div v-if="!context.isCustomApp">
+          <p>Please sign in to your Apaleo account to continue.</p>
+          <md-button class="md-raised" @click="signIn"> Sign in </md-button>
+        </div>
       </div>
 
       <div v-if="inProgress" id="loadingPanel" class="loading-panel">
@@ -64,10 +77,10 @@
 
     <script>
       const apaleoContext = {
-        isCustomApp: '<?= isCustomApp ?>' == 'true',
-        isSignedIn: '<?= isSignedIn ?>' == 'true'
+        isCustomApp: "<?= isCustomApp ?>" == "true",
+        isSignedIn: "<?= isSignedIn ?>" == "true",
       };
     </script>
     <?!= include('SidebarScript'); ?>
-</body>
+  </body>
 </html>
