@@ -47,7 +47,21 @@ function openSidebar() {
   SpreadsheetApp.getUi().showSidebar(sidebar);
 }
 
-function generateReport(property, startDate, endDate) {
+/**
+ * Main function to generate "Open Receivables & Liabilities Report" (ORL Report).
+ * The report is based on the gross transaction list. Check {@link https://api.apaleo-staging.com/swagger/index.html?urls.primaryName=Reports%20NSFW|Apaleo API} for references.
+ * This function is triggered from the UI side (Sidebar component - SidebarScript.html):
+ * @example
+ * submit() {
+ *      ...
+ *      scriptService
+ *         .generateORLReport(property, arrivalStr, departureStr)
+ *
+ * @param {String} property Property code
+ * @param {String} startDate The start date for the gross transactions list in the YYYY-MM-DD format.
+ * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
+ */
+function generateORLReport(property, startDate, endDate) {
   const datasheet = SpreadsheetApp.getActiveSheet();
 
   const firstCell = datasheet.getRange(1, 1);

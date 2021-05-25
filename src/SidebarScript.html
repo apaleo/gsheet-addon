@@ -26,8 +26,8 @@
           user: undefined,
           properties: [],
           selectedProperty: undefined,
-          arrivalDate: undefined,
-          departureDate: undefined,
+          from: undefined,
+          to: undefined,
           inProgress: false
         }
       },
@@ -69,14 +69,14 @@
         },
 
         submit() {
-          const arrivalStr = getIsoDate(this.arrivalDate);
-          const departureStr = getIsoDate(this.departureDate);
           const property = this.selectedProperty;
+          const fromStr = getIsoDate(this.from);
+          const toStr = getIsoDate(this.to);
 
           this.inProgress = true;
 
           scriptService
-            .generateReport(property, arrivalStr, departureStr)
+            .generateORLReport(property, fromStr, toStr)
             .then(() => this.inProgress = false)
             .catch((e) => this.onError(e));
         },
