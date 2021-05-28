@@ -1,0 +1,244 @@
+:root {
+  --primary-color: #007e8f;
+  --primary-hover-color: #0d7280;
+  --accent-color: #f19722;
+  --bg-color: #fff;
+  --font-color: #111;
+}
+
+.primary {
+  color: var(--primary-color);
+}
+.primary-bg {
+  color: #fff;
+  background-color: var(--primary-color);
+}
+a.primary-bg:hover {
+  background-color: var(--primary-hover-color);
+}
+.accent {
+  color: var(--accent-color);
+}
+.accent-bg {
+  color: #fff;
+  background-color: var(--accent-color);
+}
+
+html {
+  font-family: sans-serif;
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-family: "Open Sans", sans-serif;
+  color: var(--font-color);
+  background-color: var(--bg-color);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Roboto, sans-serif;
+}
+
+.logo,
+.logo:link {
+  text-decoration: none;
+  color: var(--font-color);
+  font-weight: bold;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.logo img {
+  width: 48px;
+  margin-right: 8px;
+}
+
+.sheet {
+  position: relative;
+  width: 1140px;
+  margin: 0 auto;
+}
+
+header .sheet {
+  padding: 16px 35px;
+}
+
+.layout {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  min-height: 100%;
+  max-width: 100%;
+  margin-top: 50px;
+}
+.container {
+  flex: 0 0 50%;
+  max-width: 50%;
+  display: flex;
+  flex-direction: column;
+}
+.container-1 {
+  padding: 40px 50px 40px 35px;
+}
+
+.sup-header {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+h1 {
+  font-weight: 700;
+  font-size: 3.75rem;
+  line-height: 1.1;
+  margin: 26px 0 0;
+}
+
+h1 + p {
+  margin: 40px 0 0;
+}
+
+.main-action,
+.main-action:link {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: 40px;
+  padding: 16px 24px 16px 16px;
+  border-radius: 50px;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 4px #999;
+  text-decoration: none;
+}
+
+.main-action img {
+  margin-right: 10px;
+}
+
+.shape-1 {
+  width: 246px;
+  height: 246px;
+  margin: 9px auto 0 0;
+  color: var(--accent-color);
+}
+
+.shape-1 .link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.shape-1.primary .content {
+  fill: var(--primary-color);
+}
+.shape-1.accent .content {
+  fill: var(--accent-color);
+}
+
+.shape-2 {
+  width: 114px;
+  height: 114px;
+  margin: -86px 170px 0 auto;
+  color: #ffffff;
+  border-radius: 50%;
+}
+.shape-2.primary {
+  background-color: var(--primary-color);
+}
+.shape-2.accent {
+  background-color: var(--accent-color);
+}
+
+.image {
+  background-position: left top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+}
+.image.primary {
+  border-color: var(--primary-color);
+}
+.image.accent {
+  border-color: var(--accent-color);
+}
+.image-1 {
+  width: 510px;
+  height: 510px;
+  background-image: url("screenshot1.png");
+  background-position: left top;
+  margin: -128px 0 0 auto;
+  border-width: 10px;
+}
+.image-2 {
+  width: 279px;
+  height: 279px;
+  box-shadow: 5px 5px 18px 1px rgba(0, 0, 0, 0.4);
+  background-image: url("screenshot2.png");
+  background-position: 50% 50%;
+  margin: -139px auto 0 0;
+  border-width: 16px;
+}
+.image-3 {
+  width: 160px;
+  height: 160px;
+  background-image: url("apaleoLogo.png");
+  border-radius: 0px;
+}
+
+@media (min-width: 1200px) {
+  .sheet {
+    width: 1140px;
+  }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  .sheet {
+    width: 940px;
+  }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .sheet {
+    width: 720px;
+  }
+}
+@media (min-width: 576px) and (max-width: 767px) {
+  .sheet {
+    width: 540px;
+  }
+}
+@media (max-width: 575px) {
+  .sheet {
+    width: 340px;
+  }
+}
+
+footer {
+  padding: 100px 0 25px;
+  text-align: center;
+}
+footer p {
+  margin: 0;
+}
