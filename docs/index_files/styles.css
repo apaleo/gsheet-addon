@@ -52,6 +52,13 @@ h6 {
   font-family: Roboto, sans-serif;
 }
 
+a, a:link {
+  color: var(--primary-color);
+}
+a:hover {
+  color: var(--primary-hover-color);
+}
+
 .logo,
 .logo:link {
   text-decoration: none;
@@ -93,6 +100,10 @@ header .sheet {
 }
 .container-1 {
   padding: 40px 50px 40px 35px;
+}
+
+.layout > article {
+  padding: 0px 35px;
 }
 
 .sup-header {
