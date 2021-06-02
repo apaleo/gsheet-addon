@@ -6,16 +6,71 @@
     <meta name="keywords" content="apaleo Google Sheet Add-on" />
     <meta name="description" content="" />
     <title>apaleo Google Sheet Add-on</title>
-    <link rel="stylesheet" href="./index_files/fonts.css" />
-    <link rel="stylesheet" href="./index_files/styles.css" media="screen" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="index_files/favicon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="index_files/favicon-96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="index_files/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="index_files/favicon-16.png"
+    />
+
+    <link rel="stylesheet" href="index_files/fonts.css" />
+    <link rel="stylesheet" href="index_files/styles.css" media="screen" />
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-8PLVR3MM4K"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-8PLVR3MM4K");
+    </script>
   </head>
   <body>
     <header>
       <div class="sheet">
         <a href="index.html" class="logo">
-          <img src="index_files/logo.png">
+          <img src="index_files/add-on-logo.svg" />
           apaleo Google Sheet Add-on
         </a>
+        <nav class="menu">
+          <div class="nav-container">
+            <ul class="nav">
+              <li class="nav-item selected">
+                <a href="index.html">Home</a>
+              </li>
+              <li class="nav-item">
+                <a href="terms-of-services.html">Terms of Services</a>
+              </li>
+              <li class="nav-item">
+                <a href="privacy-policy.html">Privacy Policy</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
       </div>
     </header>
     <section class="sheet">
@@ -35,7 +90,10 @@
               the selected hotel between the specified from and to dates.
             </p>
             <p>More reports will come</p>
-            <a href="https://github.com/apaleo/google-sheet-addon" class="main-action primary-bg">
+            <a
+              href="https://github.com/apaleo/google-sheet-addon"
+              class="main-action primary-bg"
+            >
               <img src="index_files/github-light.png" />
               Check the Project
             </a>
