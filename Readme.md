@@ -142,4 +142,4 @@ This add-on is a non-commercial project with the open-source code, which goal is
 
 # License
 
-[MIT License](blob/master/LICENSE)
+[MIT License](LICENSE)
