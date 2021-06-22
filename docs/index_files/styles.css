@@ -166,6 +166,9 @@ h1 + p {
   box-shadow: 0 0 4px #999;
   text-decoration: none;
 }
+.main-action:hover {
+  color: white;
+}
 
 .main-action img {
   margin-right: 10px;
