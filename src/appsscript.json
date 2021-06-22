@@ -19,8 +19,8 @@
 
   "addOns": {
     "common": {
-      "name": "apaleo Google Sheet Add-on",
-      "logoUrl": "https://store.apaleo.com/wp-content/uploads/sites/4/2021/06/add-on-logo-120.png",
+      "name": "apaleo Add-on",
+      "logoUrl": "https://store.apaleo.com/wp-content/uploads/sites/4/2021/06/add-on-logo.png",
       "openLinkUrlPrefixes": [
         "https://app.apaleo.com",
         "https://identity.apaleo.com"

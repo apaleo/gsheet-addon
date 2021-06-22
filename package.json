@@ -1,13 +1,15 @@
 {
-  "name": "@apaleo/google-sheet-addon",
+  "name": "@apaleo/gsheet-addon",
   "version": "1.0.0",
-  "description": "apaleo Google Sheet Addon",
+  "description": "apaleo Add-on for Google Sheets",
   "author": "apaleo GmbH",
   "license": "MIT",
   "scripts": {
-    "push": "clasp push"
+    "push": "clasp push",
+    "docs": "http-server ./docs -p 4100"
   },
   "devDependencies": {
-    "@google/clasp": "^2.3.0"
+    "@google/clasp": "^2.3.0",
+    "http-server": "^0.12.3"
   }
 }

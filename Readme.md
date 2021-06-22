@@ -1,6 +1,6 @@
-# apaleo Google Sheet Add-on
+# apaleo Add-on for Google Sheets
 
-A Google Sheet Add-on that creates custom reports using [apaleo API](https://api.apaleo.com/swagger/index.html).
+An add-on for Google Sheets that creates custom reports using [apaleo API](https://api.apaleo.com/swagger/index.html).
 
 ## Open Receivables & Liabilities Report
 
@@ -68,7 +68,7 @@ completed, so it can start updating its contents.
 
 # How can I create my own report?
 
-This code is published under the [MIT License](blob/master/LICENSE) and it means that nothing can stop you from copying this repo, modifying the code and creating your own report. And you can do it manually or using the terminal.
+This code is published under the [MIT License](LICENSE) and it means that nothing can stop you from copying this repo, modifying the code and creating your own report. And you can do it manually or using the terminal.
 
 ## Manually
 
@@ -87,8 +87,8 @@ This code is published under the [MIT License](blob/master/LICENSE) and it means
 
 ```sh
 # Clone this repo
-git clone https://github.com/apaleo/google-sheet-addon.git apaleo-google-sheet-addon
-cd apaleo-google-sheet-addon
+git clone https://github.com/apaleo/gsheet-addon.git gsheet-addon
+cd gsheet-addon
 
 # Install the dependencies
 yarn install
