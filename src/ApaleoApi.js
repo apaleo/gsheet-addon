@@ -1,33 +1,43 @@
 const apaleoApiUrl = "https://api.apaleo.com";
 
-const scriptProperties = PropertiesService.getScriptProperties();
-const authType = scriptProperties.getProperty("AUTH_TYPE");
-const isApaleoApp = authType === "authorization_code";
+function isApaleoApp() {
+  const authType =
+    PropertiesService.getScriptProperties().getProperty("AUTH_TYPE");
 
-const userProperties = PropertiesService.getUserProperties();
-const ui = SpreadsheetApp.getUi();
+  return authType === "authorization_code";
+}
 
 function setClientId() {
-  var response = ui.prompt(
+  const ui = SpreadsheetApp.getUi();
+
+  const response = ui.prompt(
     "Authentication",
     "Please provide your Client ID:",
     ui.ButtonSet.OK_CANCEL
   );
 
   if (response.getSelectedButton() == ui.Button.OK) {
-    userProperties.setProperty("CLIENT_ID", response.getResponseText());
+    PropertiesService.getUserProperties().setProperty(
+      "CLIENT_ID",
+      response.getResponseText()
+    );
   }
 }
 
 function setClientSecret() {
-  var response = ui.prompt(
+  const ui = SpreadsheetApp.getUi();
+
+  const response = ui.prompt(
     "Authentication",
     "Please provide your Client Secret:",
     ui.ButtonSet.OK_CANCEL
   );
 
   if (response.getSelectedButton() == ui.Button.OK) {
-    userProperties.setProperty("CLIENT_SECRET", response.getResponseText());
+    PropertiesService.getUserProperties().setProperty(
+      "CLIENT_SECRET",
+      response.getResponseText()
+    );
     const service = getApaleoAuthService();
     service.reset();
     service.exchangeGrant_();
@@ -35,12 +45,17 @@ function setClientSecret() {
 }
 
 function deleteCredential() {
-  userProperties.deleteProperty("CLIENT_ID").deleteProperty("CLIENT_SECRET");
+  PropertiesService.getUserProperties()
+    .deleteProperty("CLIENT_ID")
+    .deleteProperty("CLIENT_SECRET");
   getApaleoAuthService().reset();
 }
 
 function getApaleoAuthService() {
-  const properties = isApaleoApp ? scriptProperties : userProperties;
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const userProperties = PropertiesService.getUserProperties();
+
+  const properties = isApaleoApp() ? scriptProperties : userProperties;
 
   const CLIENT_ID = properties.getProperty("CLIENT_ID");
   const CLIENT_SECRET = properties.getProperty("CLIENT_SECRET");
@@ -60,7 +75,7 @@ function getApaleoAuthService() {
     // configuring the service:
     .setLock(LockService.getUserLock());
 
-  if (isApaleoApp) {
+  if (isApaleoApp()) {
     service
       .setScope(
         "offline_access openid profile accounting.read availability.read reports.read reservations.read identity:account-users.read"

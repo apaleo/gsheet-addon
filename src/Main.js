@@ -3,22 +3,27 @@
  * @param {Object} e The event parameter for a simple onOpen trigger.
  */
 function onOpen(e) {
-  const menu = SpreadsheetApp.getUi().createAddonMenu();
-  if (!isApaleoApp) {
-    menu
-      .addSubMenu(
-        SpreadsheetApp.getUi()
-          .createMenu("Authentication")
-          .addItem("Set Client ID", "setClientId")
-          .addItem("Set Client Secret", "setClientSecret")
-          .addItem("Delete all credentials", "deleteCredential")
-      )
-      .addSeparator();
+  const ui = SpreadsheetApp.getUi();
+  const menu = ui.createAddonMenu();
+  const authMode = e && e.authMode;
+
+  // if we have permissions to read the document properties
+  // and make a call to isApaleoApp function
+  if (authMode !== ScriptApp.AuthMode.NONE && !isApaleoApp()) {
+      menu
+        .addSubMenu(
+          ui
+            .createMenu("Authentication")
+            .addItem("Set Client ID", "setClientId")
+            .addItem("Set Client Secret", "setClientSecret")
+            .addItem("Delete all credentials", "deleteCredential")
+        )
+        .addSeparator();
   }
 
   menu.addItem("Open Receivables & Liabilities", "openSidebar").addToUi();
 
-  if (e && e.authMode == ScriptApp.AuthMode.FULL) {
+  if (authMode == ScriptApp.AuthMode.FULL) {
     openSidebar();
   }
 }
@@ -37,7 +42,7 @@ function openSidebar() {
 
   const template = HtmlService.createTemplateFromFile("Sidebar");
   template.isSignedIn = service.hasAccess();
-  template.isCustomApp = !isApaleoApp;
+  template.isCustomApp = !isApaleoApp();
 
   const sidebar = template
     .evaluate()
