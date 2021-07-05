@@ -1,4 +1,4 @@
-# apaleo Add-on for Google Sheets
+# apaleo for Sheets
 
 An add-on for Google Sheets that creates custom reports using [apaleo API](https://api.apaleo.com/swagger/index.html).
 

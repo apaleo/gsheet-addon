@@ -1,7 +1,7 @@
 {
   "name": "@apaleo/gsheet-addon",
   "version": "1.0.0",
-  "description": "apaleo Add-on for Google Sheets",
+  "description": "apaleo for Sheets - apaleo add-on for Google Sheets",
   "author": "apaleo GmbH",
   "license": "MIT",
   "scripts": {

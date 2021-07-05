@@ -19,7 +19,7 @@
 
   "addOns": {
     "common": {
-      "name": "apaleo Add-on",
+      "name": "apaleo for Sheets",
       "logoUrl": "https://store.apaleo.com/wp-content/uploads/sites/4/2021/06/add-on-logo.png",
       "openLinkUrlPrefixes": [
         "https://app.apaleo.com",
