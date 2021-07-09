@@ -67,12 +67,12 @@ function openSidebar() {
  * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
  */
 function generateORLReport(property, startDate, endDate) {
-  const clock = new Clock();
+  // const clock = new Clock();
 
   const data = getGrossTransactions(property, startDate, endDate);
 
-  Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
-  clock.set();
+  // Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
+  // clock.set();
 
   const transactions = data.filter(
     (transaction) => transaction.referenceType == "Guest"
@@ -188,9 +188,9 @@ function generateORLReport(property, startDate, endDate) {
     ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key])),
   ];
 
-  Logger.log(
-    `Processed ${transactions.length} transactions - ${clock.check()}`
-  );
+  // Logger.log(
+  //   `Processed ${transactions.length} transactions - ${clock.check()}`
+  // );
 
   const datasheet = SpreadsheetApp.getActiveSheet();
   datasheet.clear();
