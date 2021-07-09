@@ -10,15 +10,15 @@ function onOpen(e) {
   // if we have permissions to read the document properties
   // and make a call to isApaleoApp function
   if (authMode !== ScriptApp.AuthMode.NONE && !isApaleoApp()) {
-      menu
-        .addSubMenu(
-          ui
-            .createMenu("Authentication")
-            .addItem("Set Client ID", "setClientId")
-            .addItem("Set Client Secret", "setClientSecret")
-            .addItem("Delete all credentials", "deleteCredential")
-        )
-        .addSeparator();
+    menu
+      .addSubMenu(
+        ui
+          .createMenu("Authentication")
+          .addItem("Set Client ID", "setClientId")
+          .addItem("Set Client Secret", "setClientSecret")
+          .addItem("Delete all credentials", "deleteCredential")
+      )
+      .addSeparator();
   }
 
   menu.addItem("Open Receivables & Liabilities", "openSidebar").addToUi();
@@ -67,34 +67,16 @@ function openSidebar() {
  * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
  */
 function generateORLReport(property, startDate, endDate) {
-  const datasheet = SpreadsheetApp.getActiveSheet();
+  const clock = new Clock();
 
-  const firstCell = datasheet.getRange(1, 1);
-  if (!firstCell.getValue()) {
-    firstCell.setValue("Open Receivables & Liabilities Report").setFontSize(18);
-  }
+  const data = getGrossTransactions(property, startDate, endDate);
 
-  // Clear Datasheet except headers
-  if (datasheet.getLastRow() > 1) {
-    const startRow = 5;
-    const startColumn = 1;
+  Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
+  clock.set();
 
-    datasheet
-      .getRange(
-        startRow,
-        startColumn,
-        datasheet.getLastRow() - 1,
-        datasheet.getLastColumn()
-      )
-      .clearContent();
-  }
-
-  const transactions = getGrossTransactions(
-    property,
-    startDate,
-    endDate
-  ).filter((transaction) => transaction.referenceType == "Guest");
-
+  const transactions = data.filter(
+    (transaction) => transaction.referenceType == "Guest"
+  );
   const reservationsWithTransactions = Object.values(
     transactions.reduce((reservations, transaction) => {
       // get reservation from the dictionary by id
@@ -122,65 +104,150 @@ function generateORLReport(property, startDate, endDate) {
     }, {})
   );
 
+  const vatTypesInfo = {};
+  const targetReservations = [];
+  const totals = {
+    receivables: 0,
+    liabilities: {}
+  };
+
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
   for (let reservation of reservationsWithTransactions) {
-    reservation.receivables = round(
+    const receivables = round(
       reservation.transactions
-        .filter((t) => t.debitedAccount.type == "Receivables")
+        .filter((t) => t.debitedAccount.type === "Receivables")
         .reduce((sum, t) => sum + Number(t.grossAmount), 0)
     );
 
-    reservation.liabilities = round(
-      reservation.transactions
-        .filter((t) => t.creditedAccount.type == "Liabilities")
-        .reduce((sum, t) => sum + Number(t.grossAmount), 0)
-    );
+    const liabilities = reservation.transactions
+      .filter((t) => t.creditedAccount.type === "Liabilities")
+      .reduce(
+        (info, t) => {
+          const tax = t.taxes && t.taxes[0];
+          const key = getVatTypeKey(tax);
+          const amount = Number(t.grossAmount);
+
+          info[key] = (info[key] || 0) + amount;
+          info.total = info.total + amount;
+
+          if (!vatTypesInfo[key]) {
+            vatTypesInfo[key] = tax
+              ? { key, type: tax.type, percent: tax.percent }
+              : { key };
+          }
+
+          return info;
+        },
+        { total: 0 }
+      );
+
+    if (receivables || round(liabilities.total)) {
+      reservation.receivables = receivables;
+      totals.receivables = totals.receivables + receivables;
+
+      reservation.liabilities = {};
+
+      for (let key in liabilities) {
+        const amount = round(liabilities[key]);
+
+        reservation.liabilities[key] = amount;
+        totals.liabilities[key] = (totals.liabilities[key] || 0) + amount;
+      }
+
+      targetReservations.push(reservation);
+    }
   }
 
-  const cleanReservations = reservationsWithTransactions.filter(
-    (r) => r.receivables || r.liabilities
-  );
+  const usedVatTypes = Object.keys(totals.liabilities); // we can ignore 'total' property here
+  const liabilitiesColumns = Object.values(vatTypesInfo)
+    .filter(type => usedVatTypes.indexOf(type.key) !== -1)
+    .sort((a, b) => a.percent - b.percent)
+    .map((vat) => ({
+      displayName: vat.type
+        ? `Liab. ${vat.type} ${vat.percent || 0}%`
+        : `Liab. ${vat.key}`,
+      key: vat.key,
+    }));
 
-  const rows = cleanReservations.map((r) => [
-    `=HYPERLINK("https://app.apaleo.com/${property}/reservations/${r.id}"; "${r.id}")`,
+  const rows = targetReservations.map((r) => [
+    `=HYPERLINK("https://app.apaleo.com/${property}/reservations/${r.id}/folio"; "${r.id}")`,
     r.arrival,
     r.departure,
     r.status,
-    r.receivables.toFixed(2),
-    r.liabilities.toFixed(2),
+    r.receivables,
+    r.liabilities.total,
+    ...liabilitiesColumns.map((c) => r.liabilities[c.key] || 0),
   ]);
+  const totalRow = [
+    '', // id
+    '', // arrival
+    '', // departure
+    'Total', // status
+    round(totals.receivables),
+    round(totals.liabilities.total),
+    ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key])),
+  ];
 
-  const headersRange = datasheet.getRange(4, 1, 1, 6);
-  const headers = headersRange.getValues()[0];
+  Logger.log(
+    `Processed ${transactions.length} transactions - ${clock.check()}`
+  );
 
-  if (headers.some((h) => !h)) {
-    headersRange
-      .setValues([
-        [
-          "Reservation ID",
-          "Arrival",
-          "Departure",
-          "Status",
-          "Receivables",
-          "Liabilities",
-        ],
-      ])
-      .setFontWeight("bold")
-      .setBorder(false, false, true, false, false, false);
-  }
+  const datasheet = SpreadsheetApp.getActiveSheet();
+  datasheet.clear();
+  datasheet.clearFormats();
 
-  if (cleanReservations.length) {
+  const firstCell = datasheet.getRange(1, 1);
+  firstCell.setValue("Open Receivables & Liabilities Report").setFontSize(18);
+
+  // Setting headers
+  datasheet.getRange(
+    4,
+    1,
+    1,
+    6 + liabilitiesColumns.length
+  ).setValues([
+      [
+        "Reservation ID",
+        "Arrival",
+        "Departure",
+        "Status",
+        "Receivables",
+        "Liabilities",
+        ...liabilitiesColumns.map((c) => c.displayName),
+      ],
+    ])
+    .setFontWeight("bold")
+    .setBorder(false, false, true, false, false, false);
+
     // Push data at once into the sheet for performance reasons; Set summary at the end of the file for documentation
-    datasheet.getRange(5, 1, cleanReservations.length, 6).setValues(rows);
+  if (targetReservations.length) {
+    datasheet
+      .getRange(5, 1, targetReservations.length, 6 + liabilitiesColumns.length)
+      .setValues(rows);
+
+    datasheet.appendRow(totalRow);
+
+    datasheet
+      .getRange(5, 5, targetReservations.length + 1, 2 + liabilitiesColumns.length)
+      .setNumberFormat("0.00");
   }
 
   datasheet
     .getRange(2, 1)
-    .clear()
     .setValue(`for property ${property} from ${startDate} to ${endDate}`);
 
   datasheet.appendRow([" "]);
   datasheet.appendRow([
-    `Number of reservations with calculated balances: ${reservationsWithTransactions.length}, thereof ${cleanReservations.length} with open balance.`,
+    `Number of reservations with calculated balances: ${reservationsWithTransactions.length}, thereof ${targetReservations.length} with open balance. ${transactions.length} Transactions.`,
   ]);
+}
+
+function getVatTypeKey(vatOrTaxInfo) {
+  if (vatOrTaxInfo && vatOrTaxInfo.type !== "Without") {
+    const { type, percent } = vatOrTaxInfo;
+
+    return `${type}-${percent}`;
+  }
+
+  return "Without";
 }

@@ -46,3 +46,35 @@ function round(num) {
 function alert(msg) {
   Browser.msgBox(msg, Browser.Buttons.OK);
 }
+
+class Clock {
+  constructor() {
+    this.set();
+  }
+
+  set() {
+    this.start = Date.now();
+  }
+
+  check() {
+    const now = Date.now();
+    const diff = now - this.start;
+
+    this.start = now;
+
+    return format(diff);
+  }
+}
+
+function format(timeInMs) {
+  if (timeInMs < 100) {
+    return `${timeInMs}ms`;
+  } else if (timeInMs < 1000 * 60) {
+    return `${round(timeInMs / 1000)}s`;
+  } else {
+    const mins = Math.floor(timeInMs / 1000 / 60);
+    const diff = timeInMs - mins * 1000 * 60;
+
+    return diff > 0 ? `${mins}m ${format(diff)}` : `${mins}m`;
+  }
+}

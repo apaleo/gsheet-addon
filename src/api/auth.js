@@ -1,54 +1,8 @@
-const apaleoApiUrl = "https://api.apaleo.com";
-
 function isApaleoApp() {
   const authType =
     PropertiesService.getScriptProperties().getProperty("AUTH_TYPE");
 
   return authType === "authorization_code";
-}
-
-function setClientId() {
-  const ui = SpreadsheetApp.getUi();
-
-  const response = ui.prompt(
-    "Authentication",
-    "Please provide your Client ID:",
-    ui.ButtonSet.OK_CANCEL
-  );
-
-  if (response.getSelectedButton() == ui.Button.OK) {
-    PropertiesService.getUserProperties().setProperty(
-      "CLIENT_ID",
-      response.getResponseText()
-    );
-  }
-}
-
-function setClientSecret() {
-  const ui = SpreadsheetApp.getUi();
-
-  const response = ui.prompt(
-    "Authentication",
-    "Please provide your Client Secret:",
-    ui.ButtonSet.OK_CANCEL
-  );
-
-  if (response.getSelectedButton() == ui.Button.OK) {
-    PropertiesService.getUserProperties().setProperty(
-      "CLIENT_SECRET",
-      response.getResponseText()
-    );
-    const service = getApaleoAuthService();
-    service.reset();
-    service.exchangeGrant_();
-  }
-}
-
-function deleteCredential() {
-  PropertiesService.getUserProperties()
-    .deleteProperty("CLIENT_ID")
-    .deleteProperty("CLIENT_SECRET");
-  getApaleoAuthService().reset();
 }
 
 function getApaleoAuthService() {
@@ -154,72 +108,46 @@ function getClient() {
   };
 }
 
-const defaultOptions = {
-  method: "GET",
-  muteHttpExceptions: true,
-};
+function setClientId() {
+  const ui = SpreadsheetApp.getUi();
 
-/**
- * Returns info about current user
- * @return {Object} {
- *    account_code: "CODE",
- *    azp: "client id",
- *    name: "max.mustermann@mail.de"
- *    preferred_username: "FirstName LastName"
- *    sub: "subjectId"
- * }
- *
- */
-function getCurrentUserInfo() {
-  const identityUrl = "https://identity.apaleo.com";
-
-  const client = getClient();
-  const user = getResponseBody(
-    client.fetch(`${identityUrl}/connect/userinfo`, defaultOptions)
+  const response = ui.prompt(
+    "Authentication",
+    "Please provide your Client ID:",
+    ui.ButtonSet.OK_CANCEL
   );
 
-  if (!user || !user.sub) {
-    throw new Error("User not found");
+  if (response.getSelectedButton() == ui.Button.OK) {
+    PropertiesService.getUserProperties().setProperty(
+      "CLIENT_ID",
+      response.getResponseText()
+    );
   }
-
-  const detailsUrl = `${identityUrl}/api/v1/users/${user.sub}`;
-
-  const options = {
-    ...defaultOptions,
-    headers: {
-      Accept: "application/json",
-    },
-  };
-
-  return getResponseBody(client.fetch(detailsUrl, options));
 }
 
-function getPropertyList() {
-  const url = apaleoApiUrl + "/inventory/v1/properties";
+function setClientSecret() {
+  const ui = SpreadsheetApp.getUi();
 
-  const client = getClient();
-  const body = getResponseBody(client.fetch(url, defaultOptions));
+  const response = ui.prompt(
+    "Authentication",
+    "Please provide your Client Secret:",
+    ui.ButtonSet.OK_CANCEL
+  );
 
-  return (body && body.properties) || [];
+  if (response.getSelectedButton() == ui.Button.OK) {
+    PropertiesService.getUserProperties().setProperty(
+      "CLIENT_SECRET",
+      response.getResponseText()
+    );
+    const service = getApaleoAuthService();
+    service.reset();
+    service.exchangeGrant_();
+  }
 }
 
-function getGrossTransactions(property, startDate, endDate) {
-  const endpointUrl =
-    apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
-
-  const options = {
-    ...defaultOptions,
-    method: "POST",
-  };
-
-  const queryParams = [
-    "propertyId=" + property,
-    "datefilter=" + "gte_" + startDate + "," + "lte_" + endDate,
-  ];
-
-  const client = getClient();
-  const url = endpointUrl + "?" + queryParams.join("&");
-  const body = getResponseBody(client.fetch(url, options));
-
-  return (body && body.transactions) || [];
+function deleteCredential() {
+  PropertiesService.getUserProperties()
+    .deleteProperty("CLIENT_ID")
+    .deleteProperty("CLIENT_SECRET");
+  getApaleoAuthService().reset();
 }
