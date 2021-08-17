@@ -1,11 +1,13 @@
-function isApaleoApp() {
+export function isApaleoApp() {
   const authType =
     PropertiesService.getScriptProperties().getProperty("AUTH_TYPE");
 
   return authType === "authorization_code";
 }
 
-function getApaleoAuthService() {
+declare const OAuth2: any;
+
+export function getApaleoAuthService() {
   const scriptProperties = PropertiesService.getScriptProperties();
   const userProperties = PropertiesService.getUserProperties();
 
@@ -50,7 +52,7 @@ function getApaleoAuthService() {
  * Callback handler that is executed after an authorization attempt.
  * @param {Object} request The results of API auth request.
  */
-function authCallback(request) {
+export function authCallback(request) {
   var template = HtmlService.createTemplateFromFile("Callback");
   template.isSignedIn = false;
   template.error = null;
@@ -76,7 +78,7 @@ function authCallback(request) {
  * Builds and returns the authorization URL from the service object.
  * @return {String} The authorization URL.
  */
-function getAuthorizationUrl() {
+export function getAuthorizationUrl() {
   return getApaleoAuthService().getAuthorizationUrl();
 }
 
@@ -84,11 +86,11 @@ function getAuthorizationUrl() {
  * Resets the API service, forcing re-authorization before
  * additional authorization-required API calls can be made.
  */
-function signOut() {
+export function signOut() {
   getApaleoAuthService().reset();
 }
 
-function getClient() {
+export function getClient() {
   return {
     fetch(url, opt_options) {
       var service = getApaleoAuthService();
@@ -108,7 +110,7 @@ function getClient() {
   };
 }
 
-function setClientId() {
+export function setClientId() {
   const ui = SpreadsheetApp.getUi();
 
   const response = ui.prompt(
@@ -125,7 +127,7 @@ function setClientId() {
   }
 }
 
-function setClientSecret() {
+export function setClientSecret() {
   const ui = SpreadsheetApp.getUi();
 
   const response = ui.prompt(
@@ -145,7 +147,7 @@ function setClientSecret() {
   }
 }
 
-function deleteCredential() {
+export function deleteCredential() {
   PropertiesService.getUserProperties()
     .deleteProperty("CLIENT_ID")
     .deleteProperty("CLIENT_SECRET");

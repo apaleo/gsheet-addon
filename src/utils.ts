@@ -1,4 +1,6 @@
-function getResponseBody(response) {
+function getResponseBody<T = any>(
+  response: GoogleAppsScript.URL_Fetch.HTTPResponse
+): T | undefined {
   const code = response.getResponseCode();
 
   // No content
@@ -13,7 +15,7 @@ function getResponseBody(response) {
 
     // OK
     if (code == 200) {
-      return JSON.parse(content);
+      return JSON.parse(content) as T;
     }
 
     // It's an error
@@ -48,6 +50,8 @@ function alert(msg) {
 }
 
 class Clock {
+  private start: number;
+
   constructor() {
     this.set();
   }

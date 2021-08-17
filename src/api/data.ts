@@ -1,3 +1,8 @@
+import { getClient } from "./auth";
+import { definitions as IdentityModels } from "./schema/identity";
+import { definitions as InventoryModels } from "./schema/inventory";
+import { definitions as ReportsModels } from "./schema/reports";
+
 const apaleoApiUrl = "https://api.apaleo.com";
 
 const defaultOptions = {
@@ -16,7 +21,7 @@ const defaultOptions = {
  * }
  *
  */
-function getCurrentUserInfo() {
+export function getCurrentUserInfo() {
   const identityUrl = "https://identity.apaleo.com";
 
   const client = getClient();
@@ -37,19 +42,23 @@ function getCurrentUserInfo() {
     },
   };
 
-  return getResponseBody(client.fetch(detailsUrl, options));
+  return getResponseBody<IdentityModels["UserModel"]>(
+    client.fetch(detailsUrl, options)
+  );
 }
 
-function getPropertyList() {
+export function getPropertyList() {
   const url = apaleoApiUrl + "/inventory/v1/properties";
 
   const client = getClient();
-  const body = getResponseBody(client.fetch(url, defaultOptions));
+  const body = getResponseBody<InventoryModels["PropertyListModel"]>(
+    client.fetch(url, defaultOptions)
+  );
 
   return (body && body.properties) || [];
 }
 
-function getGrossTransactions(property, startDate, endDate) {
+export function getGrossTransactions(property, startDate, endDate) {
   const endpointUrl =
     apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
 
@@ -65,7 +74,9 @@ function getGrossTransactions(property, startDate, endDate) {
 
   const client = getClient();
   const url = endpointUrl + "?" + queryParams.join("&");
-  const body = getResponseBody(client.fetch(url, options));
+  const body = getResponseBody<
+    ReportsModels["TransactionsGrossExportListModel"]
+  >(client.fetch(url, options));
 
   return (body && body.transactions) || [];
 }

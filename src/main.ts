@@ -1,8 +1,12 @@
+import { getApaleoAuthService, isApaleoApp } from './api/auth';
+import { getGrossTransactions } from './api/data';
+import { definitions as ReportsModels } from './api/schema/reports';
+
 /**
  * Adds a custom menu with items to show the sidebar.
  * @param {Object} e The event parameter for a simple onOpen trigger.
  */
-function onOpen(e) {
+function onOpen(e: GoogleAppsScript.Events.AppsScriptEvent) {
   const ui = SpreadsheetApp.getUi();
   const menu = ui.createAddonMenu();
   const authMode = e && e.authMode;
@@ -33,7 +37,7 @@ function onOpen(e) {
  * any other initializion work is done immediately.
  * @param {Object} e The event parameter for a simple onInstall trigger.
  */
-function onInstall(e) {
+export function onInstall(e: GoogleAppsScript.Events.AppsScriptEvent) {
   onOpen(e);
 }
 
@@ -66,17 +70,19 @@ function openSidebar() {
  * @param {String} startDate The start date for the gross transactions list in the YYYY-MM-DD format.
  * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
  */
-function generateORLReport(property, startDate, endDate) {
-  // const clock = new Clock();
+export function generateORLReport(property: string, startDate: string, endDate: string) {
+  const clock = new Clock();
 
   const data = getGrossTransactions(property, startDate, endDate);
 
-  // Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
-  // clock.set();
+  Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
+  clock.set();
 
   const transactions = data.filter(
     (transaction) => transaction.referenceType == "Guest"
   );
+
+  const intialState: Record<string, LRReportRowItemModel> = {};
   const reservationsWithTransactions = Object.values(
     transactions.reduce((reservations, transaction) => {
       // get reservation from the dictionary by id
@@ -93,6 +99,8 @@ function generateORLReport(property, startDate, endDate) {
           // and create a list of transactions for that resevation.
           // We will use it later on to calculate OpenReceivables and OpenLiabilities
           transactions: [transaction],
+          receivables: 0,
+          liabilities: {}
         };
       } else {
         // if it already exists
@@ -101,14 +109,16 @@ function generateORLReport(property, startDate, endDate) {
       }
 
       return reservations;
-    }, {})
+    }, intialState)
   );
 
-  const vatTypesInfo = {};
+  const vatTypesInfo: Record<string, VatInfo> = {};
   const targetReservations = [];
   const totals = {
     receivables: 0,
-    liabilities: {}
+    liabilities: {
+      total: 0
+    }
   };
 
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
@@ -144,8 +154,6 @@ function generateORLReport(property, startDate, endDate) {
     if (receivables || round(liabilities.total)) {
       reservation.receivables = receivables;
       totals.receivables = totals.receivables + receivables;
-
-      reservation.liabilities = {};
 
       for (let key in liabilities) {
         const amount = round(liabilities[key]);
@@ -188,9 +196,9 @@ function generateORLReport(property, startDate, endDate) {
     ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key])),
   ];
 
-  // Logger.log(
-  //   `Processed ${transactions.length} transactions - ${clock.check()}`
-  // );
+  Logger.log(
+    `Processed ${transactions.length} transactions - ${clock.check()}`
+  );
 
   const datasheet = SpreadsheetApp.getActiveSheet();
   datasheet.clear();
@@ -250,4 +258,22 @@ function getVatTypeKey(vatOrTaxInfo) {
   }
 
   return "Without";
+}
+
+interface LRReportRowItemModel {
+  id: string;
+  arrival?: string;
+  departure?: string;
+  status?: string;
+  transactions: ReportsModels['TransactionsGrossExportListItemModel'][];
+  receivables: number;
+  liabilities: {
+    [vatType: string]: number;
+  }
+}
+
+interface VatInfo {
+  key: string;
+  type?: string;
+  percent?: number;
 }
