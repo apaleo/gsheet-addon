@@ -22,12 +22,12 @@ export function generateORLReport(
   startDate: string,
   endDate: string
 ) {
-  const clock = new Clock();
+  // const clock = new Clock();
 
   const data = getGrossTransactions(property, startDate, endDate);
 
-  Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
-  clock.set();
+  // Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
+  // clock.set();
 
   const transactions = data.filter(
     (transaction) =>
@@ -144,9 +144,9 @@ export function generateORLReport(
     ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key])),
   ];
 
-  Logger.log(
-    `Processed ${transactions.length} transactions - ${clock.check()}`
-  );
+  // Logger.log(
+  //   `Processed ${transactions.length} transactions - ${clock.check()}`
+  // );
 
   const datasheet = SpreadsheetApp.getActiveSheet();
   datasheet.clear();
