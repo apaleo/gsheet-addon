@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "rootDir": "./src",
+    "baseUrl": "./src",
     "outDir": "./dist",
     "skipLibCheck": true,
     "lib": ["esnext"],

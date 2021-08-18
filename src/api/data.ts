@@ -1,4 +1,4 @@
-import { getResponseBody } from "../utils";
+import { getResponseBody } from "./utils";
 import { getClient } from "./auth";
 import { IdentityModels, InventoryModels, ReportsModels } from "./schema";
 
