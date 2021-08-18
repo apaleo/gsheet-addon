@@ -1,25 +1,16 @@
+import { getResponseBody } from "../utils";
 import { getClient } from "./auth";
-import { definitions as IdentityModels } from "./schema/identity";
-import { definitions as InventoryModels } from "./schema/inventory";
-import { definitions as ReportsModels } from "./schema/reports";
+import { IdentityModels, InventoryModels, ReportsModels } from "./schema";
 
 const apaleoApiUrl = "https://api.apaleo.com";
 
-const defaultOptions = {
-  method: "GET",
+const defaultOptions: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
+  method: "get",
   muteHttpExceptions: true,
 };
 
 /**
  * Returns info about current user
- * @return {Object} {
- *    account_code: "CODE",
- *    azp: "client id",
- *    name: "max.mustermann@mail.de"
- *    preferred_username: "FirstName LastName"
- *    sub: "subjectId"
- * }
- *
  */
 export function getCurrentUserInfo() {
   const identityUrl = "https://identity.apaleo.com";
@@ -35,7 +26,7 @@ export function getCurrentUserInfo() {
 
   const detailsUrl = `${identityUrl}/api/v1/users/${user.sub}`;
 
-  const options = {
+  const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
     ...defaultOptions,
     headers: {
       Accept: "application/json",
@@ -58,13 +49,17 @@ export function getPropertyList() {
   return (body && body.properties) || [];
 }
 
-export function getGrossTransactions(property, startDate, endDate) {
+export function getGrossTransactions(
+  property: string,
+  startDate: string,
+  endDate: string
+) {
   const endpointUrl =
     apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
 
-  const options = {
+  const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
     ...defaultOptions,
-    method: "POST",
+    method: "post",
   };
 
   const queryParams = [

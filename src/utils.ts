@@ -1,4 +1,4 @@
-function getResponseBody<T = any>(
+export function getResponseBody<T = any>(
   response: GoogleAppsScript.URL_Fetch.HTTPResponse
 ): T | undefined {
   const code = response.getResponseCode();
@@ -37,24 +37,20 @@ function getResponseBody<T = any>(
   }
 }
 
-function include(filename) {
+export function include(filename: string) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-function round(num) {
+export function round(num: number) {
   return Math.round((num + Number.EPSILON) * 100) / 100;
 }
 
-function alert(msg) {
+export function alert(msg: string) {
   Browser.msgBox(msg, Browser.Buttons.OK);
 }
 
-class Clock {
-  private start: number;
-
-  constructor() {
-    this.set();
-  }
+export class Clock {
+  constructor(private start = Date.now()) {}
 
   set() {
     this.start = Date.now();
@@ -70,15 +66,16 @@ class Clock {
   }
 }
 
-function format(timeInMs) {
+export function format(timeInMs: number): string {
   if (timeInMs < 100) {
     return `${timeInMs}ms`;
-  } else if (timeInMs < 1000 * 60) {
-    return `${round(timeInMs / 1000)}s`;
-  } else {
-    const mins = Math.floor(timeInMs / 1000 / 60);
-    const diff = timeInMs - mins * 1000 * 60;
-
-    return diff > 0 ? `${mins}m ${format(diff)}` : `${mins}m`;
   }
+  if (timeInMs < 1000 * 60) {
+    return `${round(timeInMs / 1000)}s`;
+  }
+
+  const mins = Math.floor(timeInMs / 1000 / 60);
+  const diff = timeInMs - mins * 1000 * 60;
+
+  return diff > 0 ? `${mins}m ${format(diff)}` : `${mins}m`;
 }

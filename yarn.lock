@@ -81,7 +81,14 @@
     "@types/node" "*"
     "@types/responselike" "*"
 
-"@types/google-apps-script@^1.0.37":
+"@types/google-apps-script-oauth2@^38.0.0":
+  version "38.0.0"
+  resolved "https://registry.yarnpkg.com/@types/google-apps-script-oauth2/-/google-apps-script-oauth2-38.0.0.tgz#9cf9a42908844e80ffead043ef10452d872c6dd9"
+  integrity sha512-TxaCxXmAb3/Qm/kSweW+PPIckNwLvZo6maGI0oKx/MBdl/WrZkPAY7Mi56qg2xPGBObqG80rmYU691SAHiUdJg==
+  dependencies:
+    "@types/google-apps-script" "*"
+
+"@types/google-apps-script@*", "@types/google-apps-script@^1.0.37":
   version "1.0.37"
   resolved "https://registry.yarnpkg.com/@types/google-apps-script/-/google-apps-script-1.0.37.tgz#97a932d579034992ca8982b0e137f1d709b77c99"
   integrity sha512-iuXrNzkMOjSfo4PBgqFqGYmgYWRzcr1Nq7L3E+nLP8jvyxXpwL5cyNpf4XjuSsFHVt/FmsEmlPeiWdrRPSkfwQ==

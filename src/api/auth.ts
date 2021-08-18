@@ -5,7 +5,16 @@ export function isApaleoApp() {
   return authType === "authorization_code";
 }
 
-declare const OAuth2: any;
+declare const OAuth2: GoogleAppsScriptOAuth2.OAuth2;
+
+interface OAuth2ServiceWithPrivateApi extends GoogleAppsScriptOAuth2.OAuth2Service {
+  exchangeGrant_(): void;
+}
+
+function isOAuth2ServiceWithPrivateApi(service: GoogleAppsScriptOAuth2.OAuth2Service): service is OAuth2ServiceWithPrivateApi {
+  return !!service && !!(service as OAuth2ServiceWithPrivateApi).exchangeGrant_;
+}
+
 
 export function getApaleoAuthService() {
   const scriptProperties = PropertiesService.getScriptProperties();
@@ -13,8 +22,8 @@ export function getApaleoAuthService() {
 
   const properties = isApaleoApp() ? scriptProperties : userProperties;
 
-  const CLIENT_ID = properties.getProperty("CLIENT_ID");
-  const CLIENT_SECRET = properties.getProperty("CLIENT_SECRET");
+  const CLIENT_ID = properties.getProperty("CLIENT_ID") || '';
+  const CLIENT_SECRET = properties.getProperty("CLIENT_SECRET") || '';
 
   const service = OAuth2.createService("apaleoAPI")
     .setAuthorizationBaseUrl("https://identity.apaleo.com/connect/authorize")
@@ -52,7 +61,7 @@ export function getApaleoAuthService() {
  * Callback handler that is executed after an authorization attempt.
  * @param {Object} request The results of API auth request.
  */
-export function authCallback(request) {
+export function authCallback(request: {}) {
   var template = HtmlService.createTemplateFromFile("Callback");
   template.isSignedIn = false;
   template.error = null;
@@ -92,7 +101,7 @@ export function signOut() {
 
 export function getClient() {
   return {
-    fetch(url, opt_options) {
+    fetch(url: string, opt_options?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions) {
       var service = getApaleoAuthService();
       if (!service.hasAccess()) {
         throw new Error("Error: Missing Apaleo authorization.");
@@ -143,7 +152,10 @@ export function setClientSecret() {
     );
     const service = getApaleoAuthService();
     service.reset();
-    service.exchangeGrant_();
+
+    if (isOAuth2ServiceWithPrivateApi(service)) {
+      service.exchangeGrant_();
+    }
   }
 }
 
