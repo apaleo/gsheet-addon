@@ -116,7 +116,7 @@ export function generateORLReport(
   const usedVatTypes = Object.keys(totals.liabilities); // we can ignore 'total' property here
   const liabilitiesColumns = Object.values(vatTypesInfo)
     .filter((type) => usedVatTypes.indexOf(type.key) !== -1)
-    .sort((a, b) => (a.percent || 0) - (b.percent || 0))
+    .sort((a, b) => (b.percent || 0) - (a.percent || 0))
     .map((vat) => ({
       displayName: vat.type
         ? `Liab. ${vat.type} ${vat.percent || 0}%`
