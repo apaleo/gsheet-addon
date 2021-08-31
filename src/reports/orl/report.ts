@@ -1,56 +1,7 @@
-/**
- * Adds a custom menu with items to show the sidebar.
- * @param {Object} e The event parameter for a simple onOpen trigger.
- */
-function onOpen(e) {
-  const ui = SpreadsheetApp.getUi();
-  const menu = ui.createAddonMenu();
-  const authMode = e && e.authMode;
-
-  // if we have permissions to read the document properties
-  // and make a call to isApaleoApp function
-  if (authMode !== ScriptApp.AuthMode.NONE && !isApaleoApp()) {
-    menu
-      .addSubMenu(
-        ui
-          .createMenu("Authentication")
-          .addItem("Set Client ID", "setClientId")
-          .addItem("Set Client Secret", "setClientSecret")
-          .addItem("Delete all credentials", "deleteCredential")
-      )
-      .addSeparator();
-  }
-
-  menu.addItem("Open Receivables & Liabilities", "openSidebar").addToUi();
-
-  if (authMode == ScriptApp.AuthMode.FULL) {
-    openSidebar();
-  }
-}
-
-/**
- * Runs when the add-on is installed; calls onOpen() to ensure menu creation and
- * any other initializion work is done immediately.
- * @param {Object} e The event parameter for a simple onInstall trigger.
- */
-function onInstall(e) {
-  onOpen(e);
-}
-
-function openSidebar() {
-  const service = getApaleoAuthService();
-
-  const template = HtmlService.createTemplateFromFile("Sidebar");
-  template.isSignedIn = service.hasAccess();
-  template.isCustomApp = !isApaleoApp();
-
-  const sidebar = template
-    .evaluate()
-    .setTitle("Open Receivables & Liabilities")
-    .setSandboxMode(HtmlService.SandboxMode.IFRAME);
-
-  SpreadsheetApp.getUi().showSidebar(sidebar);
-}
+import { getGrossTransactions } from 'api/data';
+import { ReportsModels } from 'api/schema';
+import { Clock, round } from 'shared';
+import { LRReportRowItemModel, VatInfo } from './interfaces';
 
 /**
  * Main function to generate "Open Receivables & Liabilities Report" (ORL Report).
@@ -66,7 +17,11 @@ function openSidebar() {
  * @param {String} startDate The start date for the gross transactions list in the YYYY-MM-DD format.
  * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
  */
-function generateORLReport(property, startDate, endDate) {
+export function generateORLReport(
+  property: string,
+  startDate: string,
+  endDate: string
+) {
   // const clock = new Clock();
 
   const data = getGrossTransactions(property, startDate, endDate);
@@ -75,51 +30,49 @@ function generateORLReport(property, startDate, endDate) {
   // clock.set();
 
   const transactions = data.filter(
-    (transaction) => transaction.referenceType == "Guest"
+    (transaction) =>
+      transaction.referenceType == "Guest" ||
+      transaction.referenceType == "External"
   );
-  const reservationsWithTransactions = Object.values(
-    transactions.reduce((reservations, transaction) => {
-      // get reservation from the dictionary by id
-      const reservation = reservations[transaction.reservation.id];
 
-      if (!reservation) {
-        // if it's a new reservation then we store the info about it
-        const { id, arrival, departure, status } = transaction.reservation;
-        reservations[id] = {
-          id,
-          arrival: arrival.substr(0, 10),
-          departure: departure.substr(0, 10),
-          status,
-          // and create a list of transactions for that resevation.
-          // We will use it later on to calculate OpenReceivables and OpenLiabilities
-          transactions: [transaction],
-        };
+  const intialState: Record<string, LRReportRowItemModel> = {};
+  const groupedRecords = Object.values(
+    transactions.reduce((groups, transaction) => {
+      const groupId = getRecordId(transaction);
+      const group = groups[groupId];
+
+      if (!group) {
+        groups[groupId] = createRecordForTransaction(transaction);
       } else {
         // if it already exists
         // We just add the transaction to the list of reservation transactions
-        reservation.transactions.push(transaction);
+        group.transactions.push(transaction);
       }
 
-      return reservations;
-    }, {})
+      return groups;
+    }, intialState)
   );
 
-  const vatTypesInfo = {};
-  const targetReservations = [];
+  const vatTypesInfo: Record<string, VatInfo> = {};
+  const guestRecords = [];
+  const externalRecords = [];
+
   const totals = {
     receivables: 0,
-    liabilities: {}
+    liabilities: {
+      total: 0,
+    } as Record<string, number>,
   };
 
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
-  for (let reservation of reservationsWithTransactions) {
+  for (let record of groupedRecords) {
     const receivables = round(
-      reservation.transactions
+      record.transactions
         .filter((t) => t.debitedAccount.type === "Receivables")
         .reduce((sum, t) => sum + Number(t.grossAmount), 0)
     );
 
-    const liabilities = reservation.transactions
+    const liabilities = record.transactions
       .filter((t) => t.creditedAccount.type === "Liabilities")
       .reduce(
         (info, t) => {
@@ -138,30 +91,32 @@ function generateORLReport(property, startDate, endDate) {
 
           return info;
         },
-        { total: 0 }
+        { total: 0 } as Record<string, number>
       );
 
     if (receivables || round(liabilities.total)) {
-      reservation.receivables = receivables;
+      record.receivables = receivables;
       totals.receivables = totals.receivables + receivables;
-
-      reservation.liabilities = {};
 
       for (let key in liabilities) {
         const amount = round(liabilities[key]);
 
-        reservation.liabilities[key] = amount;
+        record.liabilities[key] = amount;
         totals.liabilities[key] = (totals.liabilities[key] || 0) + amount;
       }
 
-      targetReservations.push(reservation);
+      if (record.type == "Guest") {
+        guestRecords.push(record);
+      } else {
+        externalRecords.push(record);
+      }
     }
   }
 
   const usedVatTypes = Object.keys(totals.liabilities); // we can ignore 'total' property here
   const liabilitiesColumns = Object.values(vatTypesInfo)
-    .filter(type => usedVatTypes.indexOf(type.key) !== -1)
-    .sort((a, b) => a.percent - b.percent)
+    .filter((type) => usedVatTypes.indexOf(type.key) !== -1)
+    .sort((a, b) => (a.percent || 0) - (b.percent || 0))
     .map((vat) => ({
       displayName: vat.type
         ? `Liab. ${vat.type} ${vat.percent || 0}%`
@@ -169,8 +124,8 @@ function generateORLReport(property, startDate, endDate) {
       key: vat.key,
     }));
 
-  const rows = targetReservations.map((r) => [
-    `=HYPERLINK("https://app.apaleo.com/${property}/reservations/${r.id}/folio"; "${r.id}")`,
+  const rows = [...guestRecords, ...externalRecords].map((r) => [
+    createHyperLinkForRecord(property, r),
     r.arrival,
     r.departure,
     r.status,
@@ -178,11 +133,12 @@ function generateORLReport(property, startDate, endDate) {
     r.liabilities.total,
     ...liabilitiesColumns.map((c) => r.liabilities[c.key] || 0),
   ]);
+
   const totalRow = [
-    '', // id
-    '', // arrival
-    '', // departure
-    'Total', // status
+    "", // id
+    "", // arrival
+    "", // departure
+    "Total", // status
     round(totals.receivables),
     round(totals.liabilities.total),
     ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key])),
@@ -200,12 +156,9 @@ function generateORLReport(property, startDate, endDate) {
   firstCell.setValue("Open Receivables & Liabilities Report").setFontSize(18);
 
   // Setting headers
-  datasheet.getRange(
-    4,
-    1,
-    1,
-    6 + liabilitiesColumns.length
-  ).setValues([
+  datasheet
+    .getRange(4, 1, 1, 6 + liabilitiesColumns.length)
+    .setValues([
       [
         "Reservation ID",
         "Arrival",
@@ -219,16 +172,16 @@ function generateORLReport(property, startDate, endDate) {
     .setFontWeight("bold")
     .setBorder(false, false, true, false, false, false);
 
-    // Push data at once into the sheet for performance reasons; Set summary at the end of the file for documentation
-  if (targetReservations.length) {
+  // Push data at once into the sheet for performance reasons; Set summary at the end of the file for documentation
+  if (rows.length) {
     datasheet
-      .getRange(5, 1, targetReservations.length, 6 + liabilitiesColumns.length)
+      .getRange(5, 1, rows.length, 6 + liabilitiesColumns.length)
       .setValues(rows);
 
     datasheet.appendRow(totalRow);
 
     datasheet
-      .getRange(5, 5, targetReservations.length + 1, 2 + liabilitiesColumns.length)
+      .getRange(5, 5, rows.length + 1, 2 + liabilitiesColumns.length)
       .setNumberFormat("0.00");
   }
 
@@ -238,11 +191,14 @@ function generateORLReport(property, startDate, endDate) {
 
   datasheet.appendRow([" "]);
   datasheet.appendRow([
-    `Number of reservations with calculated balances: ${reservationsWithTransactions.length}, thereof ${targetReservations.length} with open balance. ${transactions.length} Transactions.`,
+    `${transactions.length} Transactions processed. Number of records with the open balance: ` +
+      `total - ${rows.length}, reservations - ${guestRecords.length}, external folios - ${externalRecords.length}`,
   ]);
 }
 
-function getVatTypeKey(vatOrTaxInfo) {
+function getVatTypeKey(
+  vatOrTaxInfo: ReportsModels["TaxAmountModel"] | undefined
+) {
   if (vatOrTaxInfo && vatOrTaxInfo.type !== "Without") {
     const { type, percent } = vatOrTaxInfo;
 
@@ -250,4 +206,55 @@ function getVatTypeKey(vatOrTaxInfo) {
   }
 
   return "Without";
+}
+
+function getRecordId(
+  transaction: ReportsModels["TransactionsGrossExportListItemModel"]
+) {
+  return transaction.referenceType === "Guest"
+    ? transaction.reservation!.id
+    : transaction.reference;
+}
+
+function createRecordForTransaction(
+  transaction: ReportsModels["TransactionsGrossExportListItemModel"]
+): LRReportRowItemModel {
+  switch (transaction.referenceType) {
+    case "Guest":
+      const { id, arrival, departure, status } = transaction.reservation!;
+
+      return {
+        id,
+        type: "Guest",
+        arrival: arrival.substr(0, 10),
+        departure: departure.substr(0, 10),
+        status,
+        transactions: [transaction],
+        receivables: 0,
+        liabilities: { total: 0 },
+      };
+    case "External":
+      return {
+        id: transaction.reference,
+        type: "External",
+        transactions: [transaction],
+        receivables: 0,
+        liabilities: { total: 0 },
+      };
+    default:
+      throw new Error(
+        `Transactions with reference type ${transaction.referenceType} are not supported`
+      );
+  }
+}
+
+function createHyperLinkForRecord(propertyId: string, r: LRReportRowItemModel) {
+  switch (r.type) {
+    case "Guest":
+      return `=HYPERLINK("https://app.apaleo.com/${propertyId}/reservations/${r.id}/folio"; "${r.id}")`;
+    case "External":
+      return `=HYPERLINK("https://app.apaleo.com/${propertyId}/finance/folios/${r.id}/general"; "${r.id}")`;
+    default:
+      return r.id;
+  }
 }

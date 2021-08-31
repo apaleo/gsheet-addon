@@ -1,18 +1,29 @@
-function isApaleoApp() {
+export function isApaleoApp() {
   const authType =
     PropertiesService.getScriptProperties().getProperty("AUTH_TYPE");
 
   return authType === "authorization_code";
 }
 
-function getApaleoAuthService() {
+declare const OAuth2: GoogleAppsScriptOAuth2.OAuth2;
+
+interface OAuth2ServiceWithPrivateApi extends GoogleAppsScriptOAuth2.OAuth2Service {
+  exchangeGrant_(): void;
+}
+
+function isOAuth2ServiceWithPrivateApi(service: GoogleAppsScriptOAuth2.OAuth2Service): service is OAuth2ServiceWithPrivateApi {
+  return !!service && !!(service as OAuth2ServiceWithPrivateApi).exchangeGrant_;
+}
+
+
+export function getApaleoAuthService() {
   const scriptProperties = PropertiesService.getScriptProperties();
   const userProperties = PropertiesService.getUserProperties();
 
   const properties = isApaleoApp() ? scriptProperties : userProperties;
 
-  const CLIENT_ID = properties.getProperty("CLIENT_ID");
-  const CLIENT_SECRET = properties.getProperty("CLIENT_SECRET");
+  const CLIENT_ID = properties.getProperty("CLIENT_ID") || '';
+  const CLIENT_SECRET = properties.getProperty("CLIENT_SECRET") || '';
 
   const service = OAuth2.createService("apaleoAPI")
     .setAuthorizationBaseUrl("https://identity.apaleo.com/connect/authorize")
@@ -50,7 +61,7 @@ function getApaleoAuthService() {
  * Callback handler that is executed after an authorization attempt.
  * @param {Object} request The results of API auth request.
  */
-function authCallback(request) {
+export function authCallback(request: {}) {
   var template = HtmlService.createTemplateFromFile("Callback");
   template.isSignedIn = false;
   template.error = null;
@@ -76,7 +87,7 @@ function authCallback(request) {
  * Builds and returns the authorization URL from the service object.
  * @return {String} The authorization URL.
  */
-function getAuthorizationUrl() {
+export function getAuthorizationUrl() {
   return getApaleoAuthService().getAuthorizationUrl();
 }
 
@@ -84,13 +95,13 @@ function getAuthorizationUrl() {
  * Resets the API service, forcing re-authorization before
  * additional authorization-required API calls can be made.
  */
-function signOut() {
+export function signOut() {
   getApaleoAuthService().reset();
 }
 
-function getClient() {
+export function getClient() {
   return {
-    fetch(url, opt_options) {
+    fetch(url: string, opt_options?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions) {
       var service = getApaleoAuthService();
       if (!service.hasAccess()) {
         throw new Error("Error: Missing Apaleo authorization.");
@@ -108,7 +119,7 @@ function getClient() {
   };
 }
 
-function setClientId() {
+export function setClientId() {
   const ui = SpreadsheetApp.getUi();
 
   const response = ui.prompt(
@@ -125,7 +136,7 @@ function setClientId() {
   }
 }
 
-function setClientSecret() {
+export function setClientSecret() {
   const ui = SpreadsheetApp.getUi();
 
   const response = ui.prompt(
@@ -141,11 +152,14 @@ function setClientSecret() {
     );
     const service = getApaleoAuthService();
     service.reset();
-    service.exchangeGrant_();
+
+    if (isOAuth2ServiceWithPrivateApi(service)) {
+      service.exchangeGrant_();
+    }
   }
 }
 
-function deleteCredential() {
+export function deleteCredential() {
   PropertiesService.getUserProperties()
     .deleteProperty("CLIENT_ID")
     .deleteProperty("CLIENT_SECRET");

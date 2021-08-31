@@ -1,22 +1,18 @@
+import { getResponseBody } from "./utils";
+import { getClient } from "./auth";
+import { IdentityModels, InventoryModels, ReportsModels } from "./schema";
+
 const apaleoApiUrl = "https://api.apaleo.com";
 
-const defaultOptions = {
-  method: "GET",
+const defaultOptions: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
+  method: "get",
   muteHttpExceptions: true,
 };
 
 /**
  * Returns info about current user
- * @return {Object} {
- *    account_code: "CODE",
- *    azp: "client id",
- *    name: "max.mustermann@mail.de"
- *    preferred_username: "FirstName LastName"
- *    sub: "subjectId"
- * }
- *
  */
-function getCurrentUserInfo() {
+export function getCurrentUserInfo() {
   const identityUrl = "https://identity.apaleo.com";
 
   const client = getClient();
@@ -30,32 +26,40 @@ function getCurrentUserInfo() {
 
   const detailsUrl = `${identityUrl}/api/v1/users/${user.sub}`;
 
-  const options = {
+  const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
     ...defaultOptions,
     headers: {
       Accept: "application/json",
     },
   };
 
-  return getResponseBody(client.fetch(detailsUrl, options));
+  return getResponseBody<IdentityModels["UserModel"]>(
+    client.fetch(detailsUrl, options)
+  );
 }
 
-function getPropertyList() {
+export function getPropertyList() {
   const url = apaleoApiUrl + "/inventory/v1/properties";
 
   const client = getClient();
-  const body = getResponseBody(client.fetch(url, defaultOptions));
+  const body = getResponseBody<InventoryModels["PropertyListModel"]>(
+    client.fetch(url, defaultOptions)
+  );
 
   return (body && body.properties) || [];
 }
 
-function getGrossTransactions(property, startDate, endDate) {
+export function getGrossTransactions(
+  property: string,
+  startDate: string,
+  endDate: string
+) {
   const endpointUrl =
     apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
 
-  const options = {
+  const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
     ...defaultOptions,
-    method: "POST",
+    method: "post",
   };
 
   const queryParams = [
@@ -65,7 +69,9 @@ function getGrossTransactions(property, startDate, endDate) {
 
   const client = getClient();
   const url = endpointUrl + "?" + queryParams.join("&");
-  const body = getResponseBody(client.fetch(url, options));
+  const body = getResponseBody<
+    ReportsModels["TransactionsGrossExportListModel"]
+  >(client.fetch(url, options));
 
   return (body && body.transactions) || [];
 }
