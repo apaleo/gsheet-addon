@@ -65,15 +65,46 @@ export interface paths {
 }
 
 export interface definitions {
-  TransactionsGrossExportReservationModel: {
-    /** Reservation id */
+  AddressModel: {
+    addressLine1: string;
+    addressLine2?: string;
+    postalCode: string;
+    city: string;
+    regionCode?: string;
+    countryCode: string;
+  };
+  CompaniesVatReportItemModel: {
+    company: definitions["CompanyModel"];
+    invoice: definitions["InvoiceModel"];
+  };
+  CompaniesVatReportListModel: {
+    /** List of company invoices */
+    companyInvoices: definitions["CompaniesVatReportItemModel"][];
+    /** Total count of items */
+    count: number;
+  };
+  CompanyModel: {
+    /** The ID of the company */
     id: string;
-    /** Status of the reservation */
-    status: "Confirmed" | "InHouse" | "CheckedOut" | "Canceled" | "NoShow";
-    /** Date of arrival<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    arrival: string;
-    /** Date of departure<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    departure: string;
+    /** The code for the company */
+    code: string;
+    /** The name of the company */
+    name: string;
+    /** The tax ID of the company */
+    taxId?: string;
+    address: definitions["AddressModel"];
+  };
+  EmbeddedUnitGroupModel: {
+    /** The unit group id */
+    id: string;
+    /** The code for the unit group that can be shown in reports and table views */
+    code?: string;
+    /** The name for the unit group */
+    name?: string;
+    /** The description for the unit group */
+    description?: string;
+    /** The unit group type */
+    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
   };
   ExportAccountModel: {
     /** The account name */
@@ -95,69 +126,36 @@ export interface definitions {
       | "TransitoryItems"
       | "VatOnLiabilities";
   };
-  TaxAmountModel: {
-    /** The VAT type */
-    type:
-      | "Null"
-      | "VeryReduced"
-      | "Reduced"
-      | "Normal"
-      | "Without"
-      | "Special"
-      | "ReducedCovid19"
-      | "NormalCovid19";
-    /** The currently valid percent to calculate the VAT */
-    percent: number;
-    /** The tax amount */
-    amount: number;
+  GuestReportModel: {
+    /** Total number for all guests. */
+    total: number;
+    /** Breakdown by travel purpose. Data where the travel purpose is unknown is excluded. */
+    travelPurposeBreakdown?: definitions["TravelPurposeEntry"][];
+    /** Breakdown by nationality. Data where the nationality is unknown is excluded. */
+    nationalityBreakdown?: definitions["NationalityEntry"][];
   };
-  ReceiptModel: {
-    /** The type of receipt. */
-    type?: "Custom" | "Reservation" | "Invoice" | "PspReference";
-    /** The receipt number. */
-    number: string;
-  };
-  TransactionsGrossExportListItemModel: {
-    reservation?: definitions["TransactionsGrossExportReservationModel"];
-    /** Timestamp with time zone information, when the booking was done<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    timestamp: string;
-    /** The business date when the booking was done */
+  InvoiceModel: {
+    /** Invoice number */
+    number?: string;
+    /** Date the invoice has been created */
     date: string;
-    debitedAccount: definitions["ExportAccountModel"];
-    creditedAccount: definitions["ExportAccountModel"];
-    /** The type of business transaction which triggered the booking */
-    command:
-      | "PostCharge"
-      | "PostPayment"
-      | "MoveLineItem"
-      | "PostPrepayment"
-      | "PostToAccountsReceivables"
-      | "PostPrepaymentVat"
-      | "System";
-    /** The currency of the transaction */
-    currency: string;
-    /** The gross amount being booked */
-    grossAmount: number;
-    /** The net amount being booked */
-    netAmount: number;
-    /** The taxes which make up the difference between net and gross amount */
-    taxes?: definitions["TaxAmountModel"][];
-    receipt: definitions["ReceiptModel"];
-    /** The original raw transaction entry number which got converted to these one or 2 lines. */
-    sourceEntryNumber: string;
-    /** The reference for the transactions, reservation id for guest folios, folio id for external folios, property code for the house folio */
-    reference: string;
-    /** Does this transaction belong to a reservation, a house or an external folio */
-    referenceType: "House" | "Guest" | "External";
-  };
-  TransactionsGrossExportListModel: {
-    /** The list of gross transactions with additional metadata */
-    transactions: definitions["TransactionsGrossExportListItemModel"][];
-    /** Total count of items */
-    count: number;
+    subTotal: definitions["MonetaryValueModel"];
+    outstandingPayment?: definitions["MonetaryValueModel"];
+    /** The subtotal, displaying net and tax amount for each VAT type */
+    taxDetails?: definitions["TaxDetailModel"][];
   };
   MessageItemCollection: {
     messages?: string[];
+  };
+  MonetaryValueModel: {
+    amount: number;
+    currency: string;
+  };
+  NationalityEntry: {
+    /** 2 letter ISO country code */
+    countryCode: string;
+    number: number;
+    percent: number;
   };
   OrderedServicesGuestModel: {
     /** Title of the guest */
@@ -170,30 +168,6 @@ export interface definitions {
     middleInitial?: string;
     /** Last name of the guest */
     lastName: string;
-  };
-  OrderedServicesReservationModel: {
-    /** Reservation id */
-    id: string;
-    /** Date of arrival<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    arrival: string;
-    /** Date of departure<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    departure: string;
-    /** Number of persons */
-    persons: number;
-  };
-  OrderedServicesUnitModel: {
-    /** The unit id */
-    id: string;
-    /** The name for the unit */
-    name: string;
-  };
-  OrderedServicesUnitGroupModel: {
-    /** The unit group id */
-    id: string;
-    /** The code for the unit group */
-    code: string;
-    /** The name for the unit group */
-    name: string;
   };
   OrderedServicesItemModel: {
     /** The service id */
@@ -217,44 +191,29 @@ export interface definitions {
     /** Total count of items */
     count: number;
   };
-  RoomNightsConsumedModel: {
-    /** Room nights consumed. */
-    roomNightsConsumed: number;
+  OrderedServicesReservationModel: {
+    /** Reservation id */
+    id: string;
+    /** Date of arrival<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    arrival: string;
+    /** Date of departure<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    departure: string;
+    /** Number of persons */
+    persons: number;
   };
-  TravelPurposeEntry: {
-    purpose: "Business" | "Leisure";
-    number: number;
-    percent: number;
-  };
-  NationalityEntry: {
-    /** 2 letter ISO country code */
-    countryCode: string;
-    number: number;
-    percent: number;
-  };
-  GuestReportModel: {
-    /** Total number for all guests. */
-    total: number;
-    /** Breakdown by travel purpose. Data where the travel purpose is unknown is excluded. */
-    travelPurposeBreakdown?: definitions["TravelPurposeEntry"][];
-    /** Breakdown by nationality. Data where the nationality is unknown is excluded. */
-    nationalityBreakdown?: definitions["NationalityEntry"][];
-  };
-  MonetaryValueModel: {
-    amount: number;
-    currency: string;
-  };
-  EmbeddedUnitGroupModel: {
+  OrderedServicesUnitGroupModel: {
     /** The unit group id */
     id: string;
-    /** The code for the unit group that can be shown in reports and table views */
-    code?: string;
+    /** The code for the unit group */
+    code: string;
     /** The name for the unit group */
-    name?: string;
-    /** The description for the unit group */
-    description?: string;
-    /** The unit group type */
-    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
+    name: string;
+  };
+  OrderedServicesUnitModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name: string;
   };
   PropertyPerformancePerUnitGroupModel: {
     unitGroup: definitions["EmbeddedUnitGroupModel"];
@@ -392,24 +351,38 @@ export interface definitions {
     /** The breakdown by business day for the specified filter criteria */
     businessDays?: definitions["PropertyPerformanceReportItemModel"][];
   };
-  AddressModel: {
-    addressLine1: string;
-    addressLine2?: string;
-    postalCode: string;
-    city: string;
-    regionCode?: string;
-    countryCode: string;
+  ReceiptModel: {
+    /** The type of receipt. */
+    type?: "Custom" | "Reservation" | "Invoice" | "PspReference";
+    /** The receipt number. */
+    number: string;
   };
-  CompanyModel: {
-    /** The ID of the company */
-    id: string;
-    /** The code for the company */
-    code: string;
-    /** The name of the company */
-    name: string;
-    /** The tax ID of the company */
-    taxId?: string;
-    address: definitions["AddressModel"];
+  RevenuesReportItemModel: {
+    account: definitions["ExportAccountModel"];
+    netAmount: definitions["MonetaryValueModel"];
+    grossAmount: definitions["MonetaryValueModel"];
+    /** Child accounts of this account */
+    children?: definitions["RevenuesReportItemModel"][];
+  };
+  RoomNightsConsumedModel: {
+    /** Room nights consumed. */
+    roomNightsConsumed: number;
+  };
+  TaxAmountModel: {
+    /** The VAT type */
+    type:
+      | "Null"
+      | "VeryReduced"
+      | "Reduced"
+      | "Normal"
+      | "Without"
+      | "Special"
+      | "ReducedCovid19"
+      | "NormalCovid19";
+    /** The currently valid percent to calculate the VAT */
+    percent: number;
+    /** The tax amount */
+    amount: number;
   };
   TaxDetailModel: {
     vatType:
@@ -425,32 +398,59 @@ export interface definitions {
     net: definitions["MonetaryValueModel"];
     tax: definitions["MonetaryValueModel"];
   };
-  InvoiceModel: {
-    /** Invoice number */
-    number?: string;
-    /** Date the invoice has been created */
+  TransactionsGrossExportListItemModel: {
+    reservation?: definitions["TransactionsGrossExportReservationModel"];
+    /** Timestamp with time zone information, when the booking was done<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    timestamp: string;
+    /** The business date when the booking was done */
     date: string;
-    subTotal: definitions["MonetaryValueModel"];
-    outstandingPayment?: definitions["MonetaryValueModel"];
-    /** The subtotal, displaying net and tax amount for each VAT type */
-    taxDetails?: definitions["TaxDetailModel"][];
+    debitedAccount: definitions["ExportAccountModel"];
+    creditedAccount: definitions["ExportAccountModel"];
+    /** The type of business transaction which triggered the booking */
+    command:
+      | "PostCharge"
+      | "PostPayment"
+      | "MoveLineItem"
+      | "PostPrepayment"
+      | "PostToAccountsReceivables"
+      | "PostPrepaymentVat"
+      | "System";
+    /** The currency of the transaction */
+    currency: string;
+    /** The gross amount being booked */
+    grossAmount: number;
+    /** The net amount being booked */
+    netAmount: number;
+    /** The taxes which make up the difference between net and gross amount */
+    taxes?: definitions["TaxAmountModel"][];
+    receipt: definitions["ReceiptModel"];
+    /** The original raw transaction entry number which got converted to these one or 2 lines. */
+    sourceEntryNumber: string;
+    /** The reference for the transactions, reservation id for guest folios, folio id for external folios, property code for the house folio */
+    reference: string;
+    /** Does this transaction belong to a reservation, a house or an external folio */
+    referenceType: "House" | "Guest" | "External";
   };
-  CompaniesVatReportItemModel: {
-    company: definitions["CompanyModel"];
-    invoice: definitions["InvoiceModel"];
-  };
-  CompaniesVatReportListModel: {
-    /** List of company invoices */
-    companyInvoices: definitions["CompaniesVatReportItemModel"][];
+  TransactionsGrossExportListModel: {
+    /** The list of gross transactions with additional metadata */
+    transactions: definitions["TransactionsGrossExportListItemModel"][];
     /** Total count of items */
     count: number;
   };
-  RevenuesReportItemModel: {
-    account: definitions["ExportAccountModel"];
-    netAmount: definitions["MonetaryValueModel"];
-    grossAmount: definitions["MonetaryValueModel"];
-    /** Child accounts of this account */
-    children?: definitions["RevenuesReportItemModel"][];
+  TransactionsGrossExportReservationModel: {
+    /** Reservation id */
+    id: string;
+    /** Status of the reservation */
+    status: "Confirmed" | "InHouse" | "CheckedOut" | "Canceled" | "NoShow";
+    /** Date of arrival<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    arrival: string;
+    /** Date of departure<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    departure: string;
+  };
+  TravelPurposeEntry: {
+    purpose: "Business" | "Leisure";
+    number: number;
+    percent: number;
   };
 }
 

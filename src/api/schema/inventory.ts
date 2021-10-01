@@ -137,6 +137,156 @@ export interface definitions {
     bic?: string;
     bank?: string;
   };
+  BulkCreateUnitsModel: {
+    /** The id of the property where the units will be created - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
+    propertyId?: string;
+    /** The list of unit names - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
+    names?: string[];
+    /** The description, used for all units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
+    description?: { [key: string]: string };
+    /** The id of the unit group used for all units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
+    unitGroupId?: string;
+    /** Maximum number of persons for the units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
+    maxPersons?: number;
+    /** Condition of the unit - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
+    condition?: "Clean" | "CleanToBeInspected" | "Dirty";
+    /** Collection of user defined attributes of unit - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
+    attributes?: definitions["CreateUnitAttributeModel"][];
+    units?: definitions["CreateUnitModel"][];
+  };
+  BulkUnitsCreatedModel: {
+    /** The unit ids */
+    ids: string[];
+  };
+  CountModel: {
+    count: number;
+  };
+  CountryListModel: {
+    /** List of ISO country codes. */
+    countryCodes: string[];
+  };
+  CreateAddressModel: {
+    addressLine1: string;
+    addressLine2?: string;
+    postalCode: string;
+    city: string;
+    /** The ISO 3166-2 code */
+    regionCode?: string;
+    /** The country code, in ISO 3166-1 alpha-2 code */
+    countryCode: string;
+  };
+  CreatePropertyModel: {
+    /** The code for the property that can be shown in reports and table views */
+    code: string;
+    /** The name for the property */
+    name: { [key: string]: string };
+    /** The legal name of the company running the property. */
+    companyName: string;
+    /** The managing director(s) of the company, as they should appear on invoices */
+    managingDirectors?: string;
+    /** The entry in the Commercial Reigster of the company running the property, as it should appear on invoices */
+    commercialRegisterEntry: string;
+    /** The Tax-ID of the company running the property, as it should appear on invoices */
+    taxId: string;
+    /** The description for the property */
+    description?: { [key: string]: string };
+    location: definitions["CreateAddressModel"];
+    bankAccount?: definitions["BankAccountModel"];
+    /** The payment terms used for all rate plans */
+    paymentTerms: { [key: string]: string };
+    /**
+     * The time zone name of the property from the IANA Time Zone Database.
+     * (see: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+     */
+    timeZone: string;
+    /** The default check-in time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    defaultCheckInTime: string;
+    /** The default check-out time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    defaultCheckOutTime: string;
+    /** The currency a property works with. */
+    currencyCode: string;
+  };
+  CreateUnitAttributeDefinitionModel: {
+    /** The name of the unit attribute */
+    name: string;
+    /** The description of the unit attribute */
+    description?: string;
+  };
+  CreateUnitAttributeModel: {
+    /** Id of unit attribute */
+    id: string;
+  };
+  CreateUnitGroupModel: {
+    /** The code for the unit group that can be shown in reports and table views */
+    code: string;
+    /** The id of the property where unit group will be created */
+    propertyId: string;
+    /** The name for the unit group */
+    name: { [key: string]: string };
+    /** The description for the unit group */
+    description: { [key: string]: string };
+    /** Maximum number of persons for the unit group */
+    maxPersons: number;
+    /**
+     * The unit group rank
+     * Restrictions:
+     * - Should be greater or equal to one
+     */
+    rank?: number;
+    /** The unit group type */
+    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot";
+  };
+  CreateUnitModel: {
+    /** The id of the property where the unit will be created */
+    propertyId: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
+    description: { [key: string]: string };
+    /** The id of the unit group */
+    unitGroupId?: string;
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+    /** Condition of the unit */
+    condition?: "Clean" | "CleanToBeInspected" | "Dirty";
+    /** Collection of user defined attributes of unit */
+    attributes?: definitions["CreateUnitAttributeModel"][];
+  };
+  EmbeddedPropertyModel: {
+    /** The property id */
+    id: string;
+    /** The code for the property that can be shown in reports and table views */
+    code?: string;
+    /** The name for the property */
+    name?: string;
+    /** The description for the property */
+    description?: string;
+  };
+  EmbeddedUnitGroupModel: {
+    /** The unit group id */
+    id: string;
+    /** The code for the unit group that can be shown in reports and table views */
+    code?: string;
+    /** The name for the unit group */
+    name?: string;
+    /** The description for the unit group */
+    description?: string;
+    /** The unit group type */
+    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
+  };
+  MessageItemCollection: {
+    messages?: string[];
+  };
+  Operation: {
+    value?: { [key: string]: unknown };
+    path?: string;
+    op?: string;
+    from?: string;
+  };
+  PropertyCreatedModel: {
+    /** The property id */
+    id: string;
+  };
   PropertyItemModel: {
     /** The property id */
     id: string;
@@ -182,57 +332,6 @@ export interface definitions {
     /** Total count of items */
     count: number;
   };
-  MessageItemCollection: {
-    messages?: string[];
-  };
-  CreateAddressModel: {
-    addressLine1: string;
-    addressLine2?: string;
-    postalCode: string;
-    city: string;
-    /** The ISO 3166-2 code */
-    regionCode?: string;
-    /** The country code, in ISO 3166-1 alpha-2 code */
-    countryCode: string;
-  };
-  CreatePropertyModel: {
-    /** The code for the property that can be shown in reports and table views */
-    code: string;
-    /** The name for the property */
-    name: { [key: string]: string };
-    /** The legal name of the company running the property. */
-    companyName: string;
-    /** The managing director(s) of the company, as they should appear on invoices */
-    managingDirectors?: string;
-    /** The entry in the Commercial Reigster of the company running the property, as it should appear on invoices */
-    commercialRegisterEntry: string;
-    /** The Tax-ID of the company running the property, as it should appear on invoices */
-    taxId: string;
-    /** The description for the property */
-    description?: { [key: string]: string };
-    location: definitions["CreateAddressModel"];
-    bankAccount?: definitions["BankAccountModel"];
-    /** The payment terms used for all rate plans */
-    paymentTerms: { [key: string]: string };
-    /**
-     * The time zone name of the property from the IANA Time Zone Database.
-     * (see: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-     */
-    timeZone: string;
-    /** The default check-in time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    defaultCheckInTime: string;
-    /** The default check-out time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    defaultCheckOutTime: string;
-    /** The currency a property works with. */
-    currencyCode: string;
-  };
-  PropertyCreatedModel: {
-    /** The property id */
-    id: string;
-  };
-  CountModel: {
-    count: number;
-  };
   /** With this request you can create a new property */
   PropertyModel: {
     /** The property id */
@@ -273,166 +372,32 @@ export interface definitions {
     /** Is the property archived */
     isArchived: boolean;
   };
-  Operation: {
-    value?: { [key: string]: unknown };
-    path?: string;
-    op?: string;
-    from?: string;
-  };
-  CountryListModel: {
-    /** List of ISO country codes. */
-    countryCodes: string[];
-  };
-  EmbeddedPropertyModel: {
-    /** The property id */
-    id: string;
-    /** The code for the property that can be shown in reports and table views */
-    code?: string;
-    /** The name for the property */
-    name?: string;
-    /** The description for the property */
-    description?: string;
-  };
-  EmbeddedUnitGroupModel: {
-    /** The unit group id */
-    id: string;
-    /** The code for the unit group that can be shown in reports and table views */
-    code?: string;
+  ReplaceUnitGroupModel: {
     /** The name for the unit group */
-    name?: string;
+    name: { [key: string]: string };
     /** The description for the unit group */
-    description?: string;
-    /** The unit group type */
-    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
-  };
-  UnitMaintenanceModel: {
-    /** The id for the scheduled maintenance */
-    id: string;
-    /** Date and time the scheduled maintenance window starts<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    from: string;
-    /** Date and time the scheduled maintenance window ends<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    to: string;
-    /**
-     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
-     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
-     * even under construction and should reduce the house count (OutOfInventory)
-     */
-    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
-    /** The description text for the maintenance */
-    description?: string;
-  };
-  UnitStatusModel: {
-    isOccupied: boolean;
-    condition: "Clean" | "CleanToBeInspected" | "Dirty";
-    maintenance?: definitions["UnitMaintenanceModel"];
-  };
-  UnitAttributeModel: {
-    /** Id of unit attribute */
-    id: string;
-    /** The name of the unit attribute */
-    name: string;
-    /** Description of unit attribute */
-    description?: string;
-  };
-  UnitModel: {
-    /** The unit id */
-    id: string;
-    /** The name for the unit */
-    name: string;
-    /** The description for the unit */
     description: { [key: string]: string };
-    property: definitions["EmbeddedPropertyModel"];
-    unitGroup?: definitions["EmbeddedUnitGroupModel"];
-    status: definitions["UnitStatusModel"];
-    /** Maximum number of persons for the unit */
-    maxPersons: number;
-    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    created: string;
-    /** Collection of user defined attributes of unit */
-    attributes?: definitions["UnitAttributeModel"][];
-  };
-  UnitItemMaintenanceModel: {
-    /** The id for the scheduled maintenance */
-    id: string;
     /**
-     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
-     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
-     * even under construction and should reduce the house count (OutOfInventory)
+     * Maximum number of persons for the unit group.
+     * If this value is increased, the surcharges for the related rate plans must be specified in order for the rate plans to be sellable for the new possible occupancies.
      */
-    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
+    maxPersons?: number;
+    /**
+     * The unit group rank
+     * Restrictions:
+     * - Should be greater or equal to one
+     */
+    rank?: number;
   };
-  UnitItemStatusModel: {
-    isOccupied: boolean;
-    condition: "Clean" | "CleanToBeInspected" | "Dirty";
-    maintenance?: definitions["UnitItemMaintenanceModel"];
-  };
-  UnitItemModel: {
-    /** The unit id */
+  UnitAttributeDefinitionCreatedModel: {
+    /** The unit attribute id */
     id: string;
-    /** The name for the unit */
-    name: string;
-    /** The description for the unit */
-    description: string;
-    property: definitions["EmbeddedPropertyModel"];
-    unitGroup?: definitions["EmbeddedUnitGroupModel"];
-    status: definitions["UnitItemStatusModel"];
-    /** Maximum number of persons for the unit */
-    maxPersons: number;
-    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    created: string;
-    /** Collection of user defined attributes of unit */
-    attributes?: definitions["UnitAttributeModel"][];
   };
-  UnitListModel: {
-    /** List of units */
-    units: definitions["UnitItemModel"][];
+  UnitAttributeDefinitionListModel: {
+    /** List of unit attributes */
+    unitAttributes: definitions["UnitAttributeDefinitionModel"][];
     /** Total count of items */
     count: number;
-  };
-  CreateUnitAttributeModel: {
-    /** Id of unit attribute */
-    id: string;
-  };
-  CreateUnitModel: {
-    /** The id of the property where the unit will be created */
-    propertyId: string;
-    /** The name for the unit */
-    name: string;
-    /** The description for the unit */
-    description: { [key: string]: string };
-    /** The id of the unit group */
-    unitGroupId?: string;
-    /** Maximum number of persons for the unit */
-    maxPersons: number;
-    /** Condition of the unit */
-    condition?: "Clean" | "CleanToBeInspected" | "Dirty";
-    /** Collection of user defined attributes of unit */
-    attributes?: definitions["CreateUnitAttributeModel"][];
-  };
-  UnitCreatedModel: {
-    /** The unit id */
-    id: string;
-  };
-  BulkCreateUnitsModel: {
-    /** The id of the property where the units will be created - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    propertyId?: string;
-    /** The list of unit names - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    names?: string[];
-    /** The description, used for all units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    description?: { [key: string]: string };
-    /** The id of the unit group used for all units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    unitGroupId?: string;
-    /** Maximum number of persons for the units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    maxPersons?: number;
-    /** Condition of the unit - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    condition?: "Clean" | "CleanToBeInspected" | "Dirty";
-    /** Collection of user defined attributes of unit - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    attributes?: definitions["CreateUnitAttributeModel"][];
-    units?: definitions["CreateUnitModel"][];
-  };
-  BulkUnitsCreatedModel: {
-    /** The unit ids */
-    ids: string[];
   };
   UnitAttributeDefinitionModel: {
     /** The id of the unit attribute */
@@ -442,41 +407,17 @@ export interface definitions {
     /** The description of the unit attribute */
     description?: string;
   };
-  UnitAttributeDefinitionListModel: {
-    /** List of unit attributes */
-    unitAttributes: definitions["UnitAttributeDefinitionModel"][];
-    /** Total count of items */
-    count: number;
-  };
-  CreateUnitAttributeDefinitionModel: {
+  UnitAttributeModel: {
+    /** Id of unit attribute */
+    id: string;
     /** The name of the unit attribute */
     name: string;
-    /** The description of the unit attribute */
+    /** Description of unit attribute */
     description?: string;
   };
-  UnitAttributeDefinitionCreatedModel: {
-    /** The unit attribute id */
+  UnitCreatedModel: {
+    /** The unit id */
     id: string;
-  };
-  CreateUnitGroupModel: {
-    /** The code for the unit group that can be shown in reports and table views */
-    code: string;
-    /** The id of the property where unit group will be created */
-    propertyId: string;
-    /** The name for the unit group */
-    name: { [key: string]: string };
-    /** The description for the unit group */
-    description: { [key: string]: string };
-    /** Maximum number of persons for the unit group */
-    maxPersons: number;
-    /**
-     * The unit group rank
-     * Restrictions:
-     * - Should be greater or equal to one
-     */
-    rank?: number;
-    /** The unit group type */
-    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot";
   };
   UnitGroupCreatedModel: {
     /** The unit group id */
@@ -527,22 +468,81 @@ export interface definitions {
     /** The unit group type */
     type: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
   };
-  ReplaceUnitGroupModel: {
-    /** The name for the unit group */
-    name: { [key: string]: string };
-    /** The description for the unit group */
+  UnitItemMaintenanceModel: {
+    /** The id for the scheduled maintenance */
+    id: string;
+    /**
+     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
+     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
+     * even under construction and should reduce the house count (OutOfInventory)
+     */
+    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
+  };
+  UnitItemModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
+    description: string;
+    property: definitions["EmbeddedPropertyModel"];
+    unitGroup?: definitions["EmbeddedUnitGroupModel"];
+    status: definitions["UnitItemStatusModel"];
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    created: string;
+    /** Collection of user defined attributes of unit */
+    attributes?: definitions["UnitAttributeModel"][];
+  };
+  UnitItemStatusModel: {
+    isOccupied: boolean;
+    condition: "Clean" | "CleanToBeInspected" | "Dirty";
+    maintenance?: definitions["UnitItemMaintenanceModel"];
+  };
+  UnitListModel: {
+    /** List of units */
+    units: definitions["UnitItemModel"][];
+    /** Total count of items */
+    count: number;
+  };
+  UnitMaintenanceModel: {
+    /** The id for the scheduled maintenance */
+    id: string;
+    /** Date and time the scheduled maintenance window starts<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    from: string;
+    /** Date and time the scheduled maintenance window ends<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    to: string;
+    /**
+     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
+     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
+     * even under construction and should reduce the house count (OutOfInventory)
+     */
+    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
+    /** The description text for the maintenance */
+    description?: string;
+  };
+  UnitModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
     description: { [key: string]: string };
-    /**
-     * Maximum number of persons for the unit group.
-     * If this value is increased, the surcharges for the related rate plans must be specified in order for the rate plans to be sellable for the new possible occupancies.
-     */
-    maxPersons?: number;
-    /**
-     * The unit group rank
-     * Restrictions:
-     * - Should be greater or equal to one
-     */
-    rank?: number;
+    property: definitions["EmbeddedPropertyModel"];
+    unitGroup?: definitions["EmbeddedUnitGroupModel"];
+    status: definitions["UnitStatusModel"];
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    created: string;
+    /** Collection of user defined attributes of unit */
+    attributes?: definitions["UnitAttributeModel"][];
+  };
+  UnitStatusModel: {
+    isOccupied: boolean;
+    condition: "Clean" | "CleanToBeInspected" | "Dirty";
+    maintenance?: definitions["UnitMaintenanceModel"];
   };
 }
 
