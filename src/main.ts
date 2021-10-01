@@ -1,4 +1,3 @@
-import { openORLSidebar  } from 'reports/orl/sidebar';
 import { isApaleoApp } from "./api/auth";
 
 /**
@@ -34,9 +33,6 @@ export function onOpen(e: GoogleAppsScript.Events.AppsScriptEvent) {
   }
 
   menu.addItem("Open Receivables & Liabilities", "openORLSidebar").addToUi();
-
-  if (authMode == ScriptApp.AuthMode.FULL) {
-    openORLSidebar();
-  }
+  menu.addItem("Property Health", "openPropertyHealthReportSidebar").addToUi();
 }
 

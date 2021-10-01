@@ -18,7 +18,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intercom.js/0.1.4/intercom.min.js"></script>
     <?!= include('reports/sidebar.stylesheet'); ?>
-    <?!= include('reports/orl/sidebar/sidebar.stylesheet'); ?>
+    <?!= include('reports/property-health/sidebar/sidebar.stylesheet'); ?>
   </head>
   <body>
     <div id="app">
@@ -32,16 +32,6 @@
               >
             </md-select>
           </md-field>
-        </div>
-        <div class="row">
-          <md-datepicker v-model="from" md-immediately>
-            <label>From</label>
-          </md-datepicker>
-        </div>
-        <div class="row">
-          <md-datepicker v-model="to" md-immediately>
-            <label>To</label>
-          </md-datepicker>
         </div>
         <div class="row">
           <md-button class="md-raised primary" @click="submit">
@@ -82,6 +72,6 @@
       };
     </script>
     <?!= include('reports/sidebar.script'); ?>
-    <?!= include('reports/orl/sidebar/sidebar.script'); ?>
+    <?!= include('reports/property-health/sidebar/sidebar.script'); ?>
   </body>
 </html>

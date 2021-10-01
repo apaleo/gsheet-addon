@@ -1,0 +1,36 @@
+<script>
+  Vue.use(VueMaterial.default);
+  Vue.config.errorHandler = (err, vm, info) => {
+    // Show any error but this one
+    if (err.message !== "Cannot read property 'badInput' of undefined") {
+      console.error(err);
+    }
+  };
+
+  function ScriptService() {
+    const self = this;
+
+    Object.entries(google.script.run).forEach(([ key, _ ]) => {
+      self[key] = promisify(key);
+    });
+  };
+
+  function promisify(key) {
+      return function() {
+        const args = arguments;
+
+        return new Promise(function(resolve, reject) {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              [key].apply(google.script.run, args);
+        });
+      };
+  };
+
+  const scriptService = new ScriptService();
+
+  function getIsoDate(date) {
+    return date && luxon.DateTime.fromJSDate(date).toISODate();
+  }
+</script>

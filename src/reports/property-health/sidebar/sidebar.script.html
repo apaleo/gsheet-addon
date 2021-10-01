@@ -8,8 +8,6 @@
           user: undefined,
           properties: [],
           selectedProperty: undefined,
-          from: undefined,
-          to: undefined,
           inProgress: false
         }
       },
@@ -52,13 +50,10 @@
 
         submit() {
           const property = this.selectedProperty;
-          const fromStr = getIsoDate(this.from);
-          const toStr = getIsoDate(this.to);
-
           this.inProgress = true;
 
           scriptService
-            .generateORLReport(property, fromStr, toStr)
+            .generatePropertyHealthReport(property)
             .then(() => this.inProgress = false)
             .catch((e) => this.onError(e));
         },
