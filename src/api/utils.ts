@@ -24,8 +24,8 @@ export function getResponseBody<T = any>(
     if (error.messages) {
       throw new Error(error.messages.join(". "));
     }
-    if (error.message) {
-      throw new Error(error.message);
+    if (error.message || error.title) {
+      throw new Error(error.message || error.title);
     }
 
     throw new Error(error);
