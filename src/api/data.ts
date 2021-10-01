@@ -1,13 +1,14 @@
 import { getResponseBody } from "./utils";
 import { getClient } from "./auth";
-import { IdentityModels, InventoryModels, ReportsModels } from "./schema";
+import { IdentityModels, InventoryModels, ReportsModels } from './schema';
 
 const apaleoApiUrl = "https://api.apaleo.com";
 
-const defaultOptions: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
-  method: "get",
-  muteHttpExceptions: true,
-};
+const defaultOptions: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions =
+  {
+    method: "get",
+    muteHttpExceptions: true,
+  };
 
 /**
  * Returns info about current user

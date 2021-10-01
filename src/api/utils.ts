@@ -1,3 +1,29 @@
+export function toQueryParams<T extends {}>(params: T) {
+  (Object.keys(params) as (keyof T)[])
+      .map(key => {
+          const value = `${toQueryParamValue(params[key])}`;
+
+          return `${key}=${encodeURIComponent(value)}`;
+      })
+      .join('&');
+  }
+
+function toQueryParamValue<T>(value: T) {
+  if (value === null || value === undefined) {
+      return '';
+  }
+
+  if (typeof value === "string") {
+      return value;
+  }
+
+  if (Array.isArray(value)) {
+      return value.join(",");
+  }
+
+  return value;
+}
+
 export function getResponseBody<T = any>(
   response: GoogleAppsScript.URL_Fetch.HTTPResponse
 ): T | undefined {
