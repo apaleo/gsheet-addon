@@ -78,8 +78,8 @@ export function generateORLReport(
     // treat liabilities without VAT or 0% VAT as receivables
     if (useNegativeLiabilitiesAsReceivables) {
       const isZeroVat = (t: { vatType: string }) => t.vatType === "Without" || t.vatType.endsWith("-0%")
-      receivablesTransactions = [...receivablesTransactions, ...liabilitiesTransactions.filter(t => isZeroVat(t) && t.grossAmount < 0).map(t => Number(t.grossAmount))]
-      liabilitiesTransactions = liabilitiesTransactions.map(t => isZeroVat(t) && t.grossAmount < 0 ? {...t, grossAmount: 0 } : t);
+      receivablesTransactions = [...receivablesTransactions, ...liabilitiesTransactions.filter(t => isZeroVat(t) && Number(t.grossAmount) < 0).map(t => Number(t.grossAmount))]
+      liabilitiesTransactions = liabilitiesTransactions.map(t => isZeroVat(t) && Number(t.grossAmount) < 0 ? {...t, grossAmount: 0 } : t);
     }
 
     const receivables = round(receivablesTransactions.reduce((sum, grossAmount) => sum + grossAmount, 0));
