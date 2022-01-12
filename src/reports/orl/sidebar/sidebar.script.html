@@ -28,7 +28,7 @@
           selectedProperty: undefined,
           from: undefined,
           to: undefined,
-          negativeLiabilitiesAsReceivables: false,
+          useNegativeLiabilitiesAsReceivables: false,
           inProgress: false
         }
       },
@@ -71,13 +71,14 @@
 
         submit() {
           const property = this.selectedProperty;
+          const liabilitiesAsReceivables = this.useNegativeLiabilitiesAsReceivables;
           const fromStr = getIsoDate(this.from);
           const toStr = getIsoDate(this.to);
 
           this.inProgress = true;
 
           scriptService
-            .generateORLReport(property, fromStr, toStr)
+            .generateORLReport(property, fromStr, toStr, liabilitiesAsReceivables)
             .then(() => this.inProgress = false)
             .catch((e) => this.onError(e));
         },

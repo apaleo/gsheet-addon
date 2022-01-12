@@ -11,18 +11,18 @@ import { LRReportRowItemModel, VatInfo } from './interfaces';
  * submit() {
  *      ...
  *      scriptService
- *         .generateORLReport(property, arrivalStr, departureStr)
+ *         .generateORLReport(property, arrivalStr, departureStr, false)
  *
  * @param {String} property Property code
  * @param {String} startDate The start date for the gross transactions list in the YYYY-MM-DD format.
  * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
- * @param {Boolean} negativeLiabilitiesAsReceivables If liabilities 0%/without VAT are negative, make them 0 and increase receivables instead.
+ * @param {Boolean} useNegativeLiabilitiesAsReceivables If liabilities 0%/without VAT are negative, make them 0 and increase receivables instead.
  */
 export function generateORLReport(
   property: string,
   startDate: string,
   endDate: string,
-  negativeLiabilitiesAsReceivables: boolean,
+  useNegativeLiabilitiesAsReceivables: boolean,
 ) {
   // const clock = new Clock();
 
@@ -76,7 +76,7 @@ export function generateORLReport(
         });
 
     // treat liabilities without VAT or 0% VAT as receivables
-    if (negativeLiabilitiesAsReceivables) {
+    if (useNegativeLiabilitiesAsReceivables) {
       const isZeroVat = (t: { vatType: string }) => t.vatType === "Without" || t.vatType.endsWith("-0%")
       receivablesTransactions = [...receivablesTransactions, ...liabilitiesTransactions.filter(t => isZeroVat(t)).map(t => t.transaction)]
       liabilitiesTransactions = liabilitiesTransactions.filter(t => !isZeroVat(t));
