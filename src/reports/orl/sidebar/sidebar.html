@@ -44,6 +44,11 @@
           </md-datepicker>
         </div>
         <div class="row">
+          <md-checkbox v-model="negativeLiabilitiesAsReceivables">
+            <label>Treat negative liabilities as receivables</label>
+          </md-checkbox>
+        </div>
+        <div class="row">
           <md-button class="md-raised primary" @click="submit">
             <md-icon>whatshot</md-icon>
             Generate
