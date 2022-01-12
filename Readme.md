@@ -112,7 +112,7 @@ yarn clasp create --type sheets --rootDir ./src --title THE_NAME_OF_THE_PROJECT
 Open the fist link in the browser - the link to the new Google Sheet. Then execute the last command:
 
 ```sh
-# Run `mv ./src/.clasp.json .clasp.json` if the newly generated clasp.json file is under `src/` folder
+# Run `mv ./src/.clasp.json .clasp.json` if the newly generated .clasp.json file is under `src/` folder
 # Push files form ./src dir to apps script project
 yarn clasp push 
 # type `y` when prompted "Manifest file has been updated. Do you want to push and overwrite?"

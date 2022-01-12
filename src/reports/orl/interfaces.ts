@@ -1,4 +1,4 @@
-import {ReportsModels} from 'api/schema';
+import { ReportsModels } from 'api/schema';
 
 export interface LRReportRowItemModel {
   id: string;
