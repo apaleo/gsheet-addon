@@ -1,7 +1,7 @@
-import { getGrossTransactions } from 'api/data';
-import { ReportsModels } from 'api/schema';
-import { Clock, round } from 'shared';
-import { LRReportRowItemModel, VatInfo } from './interfaces';
+import {getGrossTransactions} from 'api/data';
+import {ReportsModels} from 'api/schema';
+import {round} from 'shared';
+import {LRReportRowItemModel, VatInfo} from './interfaces';
 
 /**
  * Main function to generate "Open Receivables & Liabilities Report" (ORL Report).
@@ -68,26 +68,26 @@ export function generateORLReport(
 
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
   for (let record of groupedRecords) {
-    let receivablesTransactions = record.transactions.filter((t) => t.debitedAccount.type === "Receivables");
+    let receivablesTransactions = record.transactions.filter((t) => t.debitedAccount.type === "Receivables").map(t => Number(t.grossAmount));
     let liabilitiesTransactions = record.transactions.filter((t) => t.creditedAccount.type === "Liabilities").map(t => {
-          const tax = t.taxes && t.taxes[0];
-          const vatType = getVatTypeKey(tax);
-          return {transaction: t, vatType, tax}
-        });
+      const tax = t.taxes && t.taxes[0];
+      const vatType = getVatTypeKey(tax);
+      return {grossAmount: Number(t.grossAmount), vatType, tax}
+    });
 
     // treat liabilities without VAT or 0% VAT as receivables
     if (useNegativeLiabilitiesAsReceivables) {
       const isZeroVat = (t: { vatType: string }) => t.vatType === "Without" || t.vatType.endsWith("-0%")
-      receivablesTransactions = [...receivablesTransactions, ...liabilitiesTransactions.filter(t => isZeroVat(t)).map(t => t.transaction)]
-      liabilitiesTransactions = liabilitiesTransactions.filter(t => !isZeroVat(t));
+      receivablesTransactions = [...receivablesTransactions, ...liabilitiesTransactions.filter(t => isZeroVat(t)).map(t => Number(t.grossAmount))]
+      liabilitiesTransactions = liabilitiesTransactions.map(t => isZeroVat(t) ? {...t, grossAmount: 0} : t);
     }
 
-    const receivables = round(receivablesTransactions.reduce((sum, t) => sum + Number(t.grossAmount), 0));
+    const receivables = round(receivablesTransactions.reduce((sum, grossAmount) => sum + grossAmount, 0));
 
     const liabilities = liabilitiesTransactions
       .reduce(
         (info, t) => {
-          const amount = Number(t.transaction.grossAmount);
+          const amount = t.grossAmount;
 
           info[t.vatType] = (info[t.vatType] || 0) + amount;
           info.total = info.total + amount;
