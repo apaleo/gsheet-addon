@@ -46,6 +46,15 @@
         <div class="row">
           <md-checkbox v-model="useNegativeLiabilitiesAsReceivables">
             Treat negative liabilities as receivables
+            <span>
+              <md-icon>help</md-icon>
+              <md-tooltip md-direction="bottom">
+                <div>Negative liabilities with 0% or</div>
+                <div>without VAT will become 0 and</div>
+                <div>the receivables will increase</div>
+                <div>by that amount</div>
+            </md-tooltip>
+            </span>
           </md-checkbox>
         </div>
         <div class="row">
