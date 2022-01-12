@@ -1,7 +1,7 @@
-import { getGrossTransactions } from 'api/data';
-import { ReportsModels } from 'api/schema';
-import { Clock, round } from 'shared';
-import { LRReportRowItemModel, VatInfo } from './interfaces';
+import {getGrossTransactions} from 'api/data';
+import {ReportsModels} from 'api/schema';
+import {Clock, round} from 'shared';
+import {LRReportRowItemModel, VatInfo} from './interfaces';
 
 /**
  * Main function to generate "Open Receivables & Liabilities Report" (ORL Report).
@@ -16,18 +16,20 @@ import { LRReportRowItemModel, VatInfo } from './interfaces';
  * @param {String} property Property code
  * @param {String} startDate The start date for the gross transactions list in the YYYY-MM-DD format.
  * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
+ * @param {Boolean} negativeLiabilitiesAsReceivables If liabilities 0%/without VAT are negative, make them 0 and increase receivables instead.
  */
 export function generateORLReport(
   property: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  negativeLiabilitiesAsReceivables: boolean,
 ) {
-  // const clock = new Clock();
+  const clock = new Clock();
 
   const data = getGrossTransactions(property, startDate, endDate);
 
-  // Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
-  // clock.set();
+  Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
+  clock.set();
 
   const transactions = data.filter(
     (transaction) =>
@@ -66,27 +68,34 @@ export function generateORLReport(
 
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
   for (let record of groupedRecords) {
-    const receivables = round(
-      record.transactions
-        .filter((t) => t.debitedAccount.type === "Receivables")
-        .reduce((sum, t) => sum + Number(t.grossAmount), 0)
-    );
+    let receivablesTransactions = record.transactions.filter((t) => t.debitedAccount.type === "Receivables");
+    let liabilitiesTransactions = record.transactions.filter((t) => t.creditedAccount.type === "Liabilities").map(t => {
+          const tax = t.taxes && t.taxes[0];
+          const vatType = getVatTypeKey(tax);
+          return {transaction: t, vatType, tax}
+        });
 
-    const liabilities = record.transactions
-      .filter((t) => t.creditedAccount.type === "Liabilities")
+    // treat liabilities without VAT or 0% VAT as receivables
+    if (negativeLiabilitiesAsReceivables) {
+      const isZeroVat = (t: { vatType: string }) => t.vatType === "Without" || t.vatType.endsWith("-0%")
+      receivablesTransactions = [...receivablesTransactions, ...liabilitiesTransactions.filter(t => isZeroVat(t)).map(t => t.transaction)]
+      liabilitiesTransactions = liabilitiesTransactions.filter(t => !isZeroVat(t));
+    }
+
+    const receivables = round(receivablesTransactions.reduce((sum, t) => sum + Number(t.grossAmount), 0));
+
+    const liabilities = liabilitiesTransactions
       .reduce(
         (info, t) => {
-          const tax = t.taxes && t.taxes[0];
-          const key = getVatTypeKey(tax);
-          const amount = Number(t.grossAmount);
+          const amount = Number(t.transaction.grossAmount);
 
-          info[key] = (info[key] || 0) + amount;
+          info[t.vatType] = (info[t.vatType] || 0) + amount;
           info.total = info.total + amount;
 
-          if (!vatTypesInfo[key]) {
-            vatTypesInfo[key] = tax
-              ? { key, type: tax.type, percent: tax.percent }
-              : { key };
+          if (!vatTypesInfo[t.vatType]) {
+            vatTypesInfo[t.vatType] = t.tax
+              ? { key: t.vatType, type: t.tax.type, percent: t.tax.percent }
+              : { key: t.vatType };
           }
 
           return info;
@@ -144,9 +153,9 @@ export function generateORLReport(
     ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key])),
   ];
 
-  // Logger.log(
-  //   `Processed ${transactions.length} transactions - ${clock.check()}`
-  // );
+  Logger.log(
+    `Processed ${transactions.length} transactions - ${clock.check()}`
+  );
 
   const datasheet = SpreadsheetApp.getActiveSheet();
   datasheet.clear();
