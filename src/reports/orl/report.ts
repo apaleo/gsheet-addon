@@ -1,7 +1,7 @@
-import {getGrossTransactions} from 'api/data';
-import {ReportsModels} from 'api/schema';
-import {Clock, round} from 'shared';
-import {LRReportRowItemModel, VatInfo} from './interfaces';
+import { getGrossTransactions } from 'api/data';
+import { ReportsModels } from 'api/schema';
+import { Clock, round } from 'shared';
+import { LRReportRowItemModel, VatInfo } from './interfaces';
 
 /**
  * Main function to generate "Open Receivables & Liabilities Report" (ORL Report).
@@ -24,12 +24,12 @@ export function generateORLReport(
   endDate: string,
   useNegativeLiabilitiesAsReceivables: boolean,
 ) {
-  const clock = new Clock();
+  // const clock = new Clock();
 
   const data = getGrossTransactions(property, startDate, endDate);
 
-  Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
-  clock.set();
+  // Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
+  // clock.set();
 
   const transactions = data.filter(
     (transaction) =>
@@ -66,7 +66,7 @@ export function generateORLReport(
     } as Record<string, number>,
   };
 
-  const isZeroVat = (vatType: string) => vatType === "Without" || vatType.endsWith("-0")
+  const isZeroVatKey = (vatType: string) => vatType === "Without" || vatType.endsWith("-0")
 
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
   for (let record of groupedRecords) {
@@ -82,10 +82,8 @@ export function generateORLReport(
     const liabilities = liabilitiesTransactions
       .reduce(
         (info, t) => {
-          const amount = t.grossAmount;
-
-          info[t.vatTypeKey] = (info[t.vatTypeKey] || 0) + amount;
-          info.total = info.total + amount;
+          info[t.vatTypeKey] = (info[t.vatTypeKey] || 0) + t.grossAmount;
+          info.total += t.grossAmount;
 
           if (!vatTypesInfo[t.vatTypeKey]) {
             vatTypesInfo[t.vatTypeKey] = t.tax
@@ -106,7 +104,7 @@ export function generateORLReport(
       for (let key in liabilities) {
         const amount = round(liabilities[key]);
 
-        if (useNegativeLiabilitiesAsReceivables && isZeroVat(key) && amount < 0) {
+        if (useNegativeLiabilitiesAsReceivables && isZeroVatKey(key) && amount < 0) {
           record.liabilities[key] = 0;
           record.receivables += -amount;
           totals.receivables += -amount;
