@@ -1,6 +1,6 @@
 import {getGrossTransactions} from 'api/data';
 import {ReportsModels} from 'api/schema';
-import {round} from 'shared';
+import {Clock, round} from 'shared';
 import {LRReportRowItemModel, VatInfo} from './interfaces';
 
 /**
@@ -24,12 +24,12 @@ export function generateORLReport(
   endDate: string,
   useNegativeLiabilitiesAsReceivables: boolean,
 ) {
-  // const clock = new Clock();
+  const clock = new Clock();
 
   const data = getGrossTransactions(property, startDate, endDate);
 
-  // Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
-  // clock.set();
+  Logger.log(`Retrieved ${data.length} transactions - ${clock.check()}`);
+  clock.set();
 
   const transactions = data.filter(
     (transaction) =>
@@ -66,21 +66,16 @@ export function generateORLReport(
     } as Record<string, number>,
   };
 
+  const isZeroVat = (vatType: string) => vatType === "Without" || vatType.endsWith("-7") || vatType.endsWith("-19")
+
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
   for (let record of groupedRecords) {
     let receivablesTransactions = record.transactions.filter((t) => t.debitedAccount.type === "Receivables").map(t => Number(t.grossAmount));
     let liabilitiesTransactions = record.transactions.filter((t) => t.creditedAccount.type === "Liabilities").map(t => {
       const tax = t.taxes && t.taxes[0];
-      const vatType = getVatTypeKey(tax);
-      return {grossAmount: Number(t.grossAmount), vatType, tax}
+      const vatTypeKey = getVatTypeKey(tax);
+      return {grossAmount: Number(t.grossAmount), vatTypeKey, tax}
     });
-
-    // treat liabilities without VAT or 0% VAT as receivables
-    if (useNegativeLiabilitiesAsReceivables) {
-      const isZeroVat = (t: { vatType: string }) => t.vatType === "Without" || t.vatType.endsWith("-0%")
-      receivablesTransactions = [...receivablesTransactions, ...liabilitiesTransactions.filter(t => isZeroVat(t) && Number(t.grossAmount) < 0).map(t => Number(-t.grossAmount))]
-      liabilitiesTransactions = liabilitiesTransactions.map(t => isZeroVat(t) && Number(t.grossAmount) < 0 ? {...t, grossAmount: 0 } : t);
-    }
 
     const receivables = round(receivablesTransactions.reduce((sum, grossAmount) => sum + grossAmount, 0));
 
@@ -89,13 +84,13 @@ export function generateORLReport(
         (info, t) => {
           const amount = t.grossAmount;
 
-          info[t.vatType] = (info[t.vatType] || 0) + amount;
+          info[t.vatTypeKey] = (info[t.vatTypeKey] || 0) + amount;
           info.total = info.total + amount;
 
-          if (!vatTypesInfo[t.vatType]) {
-            vatTypesInfo[t.vatType] = t.tax
-              ? { key: t.vatType, type: t.tax.type, percent: t.tax.percent }
-              : { key: t.vatType };
+          if (!vatTypesInfo[t.vatTypeKey]) {
+            vatTypesInfo[t.vatTypeKey] = t.tax
+              ? { key: t.vatTypeKey, type: t.tax.type, percent: t.tax.percent }
+              : { key: t.vatTypeKey };
           }
 
           return info;
@@ -103,15 +98,23 @@ export function generateORLReport(
         { total: 0 } as Record<string, number>
       );
 
+
     if (receivables || round(liabilities.total)) {
       record.receivables = receivables;
       totals.receivables = totals.receivables + receivables;
 
+      Logger.log(`KEY ${JSON.stringify(liabilities)}}`);
+
       for (let key in liabilities) {
         const amount = round(liabilities[key]);
 
-        record.liabilities[key] = amount;
-        totals.liabilities[key] = (totals.liabilities[key] || 0) + amount;
+        if (useNegativeLiabilitiesAsReceivables && isZeroVat(key) && amount < 0) {
+          record.liabilities[key] = 0;
+          record.liabilities.total += amount;
+        } else {
+          record.liabilities[key] = amount;
+          totals.liabilities[key] = (totals.liabilities[key] || 0) + amount;
+        }
       }
 
       if (record.type == "Guest") {
