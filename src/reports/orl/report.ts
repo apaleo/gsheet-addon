@@ -66,7 +66,7 @@ export function generateORLReport(
     } as Record<string, number>,
   };
 
-  const isZeroVat = (vatType: string) => vatType === "Without" || vatType.endsWith("-7") || vatType.endsWith("-19")
+  const isZeroVat = (vatType: string) => vatType === "Without" || vatType.endsWith("-0")
 
   // Calculate Receivables/Liabilities for all reservations found and push them to reservation details
   for (let record of groupedRecords) {
@@ -103,14 +103,13 @@ export function generateORLReport(
       record.receivables = receivables;
       totals.receivables = totals.receivables + receivables;
 
-      Logger.log(`KEY ${JSON.stringify(liabilities)}}`);
-
       for (let key in liabilities) {
         const amount = round(liabilities[key]);
 
         if (useNegativeLiabilitiesAsReceivables && isZeroVat(key) && amount < 0) {
           record.liabilities[key] = 0;
-          record.liabilities.total += amount;
+          record.receivables += -amount;
+          totals.receivables += -amount;
         } else {
           record.liabilities[key] = amount;
           totals.liabilities[key] = (totals.liabilities[key] || 0) + amount;
