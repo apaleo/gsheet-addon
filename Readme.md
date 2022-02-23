@@ -144,7 +144,7 @@ This add-on is a non-commercial project with the open-source code, which goal is
 
 # Deployment
 
-See the corresponding wiki page for Core API.
+See the corresponding internal wiki page.
 
 # License
 
