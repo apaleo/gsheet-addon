@@ -112,11 +112,13 @@ yarn clasp create --type sheets --rootDir ./src --title THE_NAME_OF_THE_PROJECT
 Open the fist link in the browser - the link to the new Google Sheet. Then execute the last command:
 
 ```sh
+# Run `mv ./src/.clasp.json .clasp.json` if the newly generated .clasp.json file is under `src/` folder
 # Push files form ./src dir to apps script project
-yarn clasp push
+yarn clasp push 
+# type `y` when prompted "Manifest file has been updated. Do you want to push and overwrite?"
 ```
 
-Return to the google sheet in the browser and open the Script editor via "Tools" >> "Script editor" menu. You should see all project files pushed to the editor together with the connected Google OAuth2 library.
+Return to the google sheet in the browser and open the Script editor via "Extensions" >> "Apps script" menu. You should see all project files pushed to the editor together with the connected Google OAuth2 library.
 
 Now you can run the `onOpen` function from the `Main.js` file in the Script editor.
 
@@ -126,7 +128,7 @@ If you see `Exception: Cannot call SpreadsheetApp.getUi() from this context.` er
 
 ![Cannot call SpreadsheetApp.getUi() from this context](./images/error.png)
 
-Most likely you have the Google Sheet document closed and you need to open it. Once you did it reopen also the Script editor through the "Tools" >> "Script editor" menu.
+Most likely you have the Google Sheet document closed and you need to open it. Once you did it reopen also the Script editor through the "Extensions" >> "Apps script" menu.
 
 # How can I contribute?
 
@@ -139,6 +141,10 @@ This add-on is a non-commercial project with the open-source code, which goal is
 5. Submit your changes for review: go to your repository on GitHub, you'll see a `Compare & pull request` button. Click on that button.
 6. Congrats! You just completed the standard fork -> clone -> edit -> pull request workflow that you'll encounter often as a contributor!
 7. Celebrate your contribution and share it with your friends and followers!
+
+# Deployment
+
+See the corresponding internal wiki page.
 
 # License
 
