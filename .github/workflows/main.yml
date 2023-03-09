@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2.1.5
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 16
       - name: Install dependencies
         run: yarn install
       - name: Setup Clasp Token
@@ -21,4 +21,3 @@ jobs:
           refresh-token: ${{ secrets.CLASP_REFRESH_TOKEN }}
       - name: Updating the remote apps script project
         run: yarn clasp push
-
