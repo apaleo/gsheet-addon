@@ -44,6 +44,20 @@
           </md-datepicker>
         </div>
         <div class="row">
+          <md-field>
+            <label>Previous Datasheet</label>
+            <md-input v-model="previousDatasheet" placeholder="please enter sheet name"></md-input>
+            <span class="md-helper-text">Make use of previous calculated receivables and liabilities.</span>
+          </md-field>
+        </div>
+        <div class="row">
+          <md-field>
+            <label>line# of last entry</label>
+            <md-input v-model="previousLineNumber" type="number"></md-input>
+            <span class="md-helper-text">Enter # of last line with historic data in previous datasheet.</span>
+          </md-field>
+        </div>
+        <div class="row">
           <md-button class="md-raised primary" @click="submit">
             <md-icon>whatshot</md-icon>
             Generate

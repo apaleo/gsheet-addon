@@ -28,6 +28,8 @@
           selectedProperty: undefined,
           from: undefined,
           to: undefined,
+          previousDatasheet : undefined,
+          previousLineNumber : undefined,
           inProgress: false
         }
       },
@@ -72,11 +74,12 @@
           const property = this.selectedProperty;
           const fromStr = getIsoDate(this.from);
           const toStr = getIsoDate(this.to);
-
+          const previousDatasheet = this.previousDatasheet;
+          const previousLineNumber = this.previousLineNumber;
           this.inProgress = true;
 
           scriptService
-            .generateORLReport(property, fromStr, toStr)
+            .generateORLReport(property, fromStr, toStr, previousDatasheet, previousLineNumber)
             .then(() => this.inProgress = false)
             .catch((e) => this.onError(e));
         },
