@@ -1,6 +1,93 @@
 <script>
-  Vue.use(VueMaterial.default);
-  Vue.config.errorHandler = (err, vm, info) => {
+
+  const app = Vue.createApp({
+      data() {
+          return {
+              context: apaleoContext,
+              user: undefined,
+              properties: [],
+              selectedProperty: undefined,
+              from: undefined,
+              to: undefined,
+              dateRange: undefined,
+              previousDatasheet : undefined,
+              previousLineNumber : undefined,
+              inProgress: false
+          }
+      },
+      methods: {
+          signIn() {
+              scriptService
+                  .getAuthorizationUrl()
+                  .then((url) => window.open(url))
+                  .catch((e) => this.onError(e));
+          },
+
+          signOut() {
+              scriptService
+                  .signOut()
+                  .then(() => this.context.isSignedIn = false);
+          },
+
+          init() {
+              this.inProgress = true;
+
+              (this.context.isCustomApp
+                      ? Promise.resolve({ isCustomApp: true })
+                      : scriptService.getCurrentUserInfo()
+              ).then((user) => {
+                  this.user = user;
+
+                  return scriptService.getPropertyList();
+              })
+                  .then((data) => {
+                      this.properties = this.user && (
+                          (this.user.isAccountAdmin || this.user.isCustomApp)
+                              ? data
+                              : data.filter(p => this.user.properties.indexOf(p.code) != -1)
+                      ) || [];
+
+                      this.inProgress = false;
+                  })
+                  .catch((e) => this.onError(e));
+          },
+
+          submit() {
+              const property = this.selectedProperty;
+              const fromStr = getIsoDate(this.dateRange[0]);
+              const toStr = getIsoDate(this.dateRange[1]);
+              const previousDatasheet = this.previousDatasheet;
+              const previousLineNumber = this.previousLineNumber;
+              this.inProgress = true;
+              scriptService
+                  .generateORLReport(property, fromStr, toStr, previousDatasheet, previousLineNumber)
+                  .then(() => this.inProgress = false)
+                  .catch((e) => this.onError(e));
+          },
+
+          onError(error) {
+              if (error) {
+                  scriptService.alert(error.message);
+              }
+
+              this.inProgress = false;
+          }
+      },
+      mounted() {
+          Intercom.getInstance().on('oauthComplete', (data) => {
+              this.context.isSignedIn = data.isSignedIn;
+              this.init();
+          });
+
+          if (this.context.isSignedIn) {
+              this.init();
+          }
+      },
+      components: { Datepicker: VueDatePicker }
+  });
+  const vuetify = Vuetify.createVuetify()
+  app.use(vuetify);
+  app.config.errorHandler = (err, vm, info) => {
     // Show any error but this one
     if (err.message !== "Cannot read property 'badInput' of undefined") {
       console.error(err);
@@ -17,92 +104,8 @@
 
   const scriptService = new ScriptService();
 
-  new Vue({
-      el: '#app',
+  app.mount('#app')
 
-      data() {
-        return {
-          context: apaleoContext,
-          user: undefined,
-          properties: [],
-          selectedProperty: undefined,
-          from: undefined,
-          to: undefined,
-          previousDatasheet : undefined,
-          previousLineNumber : undefined,
-          inProgress: false
-        }
-      },
-      methods: {
-        signIn() {
-          scriptService
-            .getAuthorizationUrl()
-            .then((url) => window.open(url))
-            .catch((e) => this.onError(e));
-        },
-
-        signOut() {
-          scriptService
-            .signOut()
-            .then(() => this.context.isSignedIn = false);
-        },
-
-        init() {
-          this.inProgress = true;
-
-          (this.context.isCustomApp
-             ? Promise.resolve({ isCustomApp: true })
-             : scriptService.getCurrentUserInfo()
-          ).then((user) => {
-              this.user = user;
-
-              return scriptService.getPropertyList();
-            })
-            .then((data) => {
-              this.properties = this.user && (
-                (this.user.isAccountAdmin || this.user.isCustomApp)
-                   ? data
-                   : data.filter(p => this.user.properties.indexOf(p.code) != -1)
-              ) || [];
-
-              this.inProgress = false;
-            })
-            .catch((e) => this.onError(e));
-        },
-
-        submit() {
-          const property = this.selectedProperty;
-          const fromStr = getIsoDate(this.from);
-          const toStr = getIsoDate(this.to);
-          const previousDatasheet = this.previousDatasheet;
-          const previousLineNumber = this.previousLineNumber;
-          this.inProgress = true;
-
-          scriptService
-            .generateORLReport(property, fromStr, toStr, previousDatasheet, previousLineNumber)
-            .then(() => this.inProgress = false)
-            .catch((e) => this.onError(e));
-        },
-
-        onError(error) {
-          if (error) {
-            scriptService.alert(error.message);
-          }
-
-          this.inProgress = false;
-        }
-      },
-      mounted() {
-        Intercom.getInstance().on('oauthComplete', (data) => {
-            this.context.isSignedIn = data.isSignedIn;
-            this.init();
-        });
-
-        if (this.context.isSignedIn) {
-          this.init();
-        }
-      }
-  });
 
   function promisify(key) {
       return function() {
