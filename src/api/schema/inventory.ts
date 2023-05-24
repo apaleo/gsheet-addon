@@ -34,6 +34,34 @@ export interface paths {
      */
     patch: operations["InventoryPropertiesByIdPatch"];
   };
+  "/inventory/v1/property-actions/{id}/clone": {
+    /**
+     * Use this call to clone a specific property.
+     * This operation creates a new property with inventory and rate plans from the specified property.<br>You must have at least one of these scopes: 'properties.create, setup.manage'.
+     */
+    post: operations["InventoryProperty-actionsByIdClonePost"];
+  };
+  "/inventory/v1/property-actions/{id}/archive": {
+    /**
+     * Use this endpoint to archive an existing live property
+     * This operation set the IsArchived flag to true<br>You must have at least one of these scopes: 'properties.manage, setup.manage'.
+     */
+    put: operations["InventoryProperty-actionsByIdArchivePut"];
+  };
+  "/inventory/v1/property-actions/{id}/set-live": {
+    /**
+     * Use this endpoint to move an existing test property to live
+     * This operation changes the property status to 'Live'<br>You must have at least one of these scopes: 'properties.manage, setup.manage'.
+     */
+    put: operations["InventoryProperty-actionsByIdSet-livePut"];
+  };
+  "/inventory/v1/property-actions/{id}/reset": {
+    /**
+     * Use this endpoint to delete all transactional data related to some test property
+     * This operation deletes all transactional data related to the specified property. The property must be in 'Test' status.<br>You must have at least one of these scopes: 'properties.manage, setup.manage'.
+     */
+    put: operations["InventoryProperty-actionsByIdResetPut"];
+  };
   "/inventory/v1/types/countries": {
     /** Returns a list of ISO country codes that could be used to create properties.<br>You need to be authorized (no particular scope required) */
     get: operations["InventoryTypesCountriesGet"];
@@ -124,6 +152,21 @@ export interface paths {
 }
 
 export interface definitions {
+  "ActionModel[PropertyAction,NotAllowedPropertyActionReason]": {
+    action: "Delete" | "Archive" | "SetLive" | "Reset";
+    isAllowed: boolean;
+    reasons?: definitions["ActionReasonModel[NotAllowedPropertyActionReason]"][];
+  };
+  "ActionReasonModel[NotAllowedPropertyActionReason]": {
+    code:
+      | "DeleteNotAllowedForPropertyNotInStatusTest"
+      | "ArchiveNotAllowedForPropertyNotInStatusLive"
+      | "ArchiveNotAllowedForPropertyWhichIsAlreadyArchived"
+      | "SetToLiveNotAllowedForPropertyNotInStatusTest"
+      | "SetToLiveNotAllowedForPropertyInNonLiveAccount"
+      | "ResetNotAllowedForPropertyNotInStatusTest";
+    message: string;
+  };
   AddressModel: {
     addressLine1: string;
     addressLine2?: string;
@@ -136,6 +179,192 @@ export interface definitions {
     iban?: string;
     bic?: string;
     bank?: string;
+  };
+  BulkCreateUnitsModel: {
+    units: definitions["CreateUnitModel"][];
+  };
+  BulkUnitsCreatedModel: {
+    /** The unit ids */
+    ids: string[];
+  };
+  ConnectedUnitGroupModel: {
+    /** The unit group id */
+    id: string;
+    /** The name for the unit group */
+    name: string;
+    /** The description for the unit group */
+    description: string;
+    /** The number of units taken from this connected unit group */
+    memberCount: number;
+    /** Maximum number of persons for the unit group */
+    maxPersons?: number;
+  };
+  ConnectedUnitModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
+    description: string;
+    /** The unit group id */
+    unitGroupId: string;
+    /** The current status of the unit */
+    condition: "Clean" | "CleanToBeInspected" | "Dirty";
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+  };
+  CountModel: {
+    count: number;
+  };
+  CountryListModel: {
+    /** List of ISO country codes. */
+    countryCodes: string[];
+  };
+  CreateAddressModel: {
+    addressLine1: string;
+    addressLine2?: string;
+    postalCode: string;
+    city: string;
+    /** The ISO 3166-2 code */
+    regionCode?: string;
+    /** The country code, in ISO 3166-1 alpha-2 code */
+    countryCode: string;
+  };
+  CreateConnectedUnitGroupModel: {
+    /** The connected unit group id */
+    unitGroupId: string;
+    /** The number of units for this connected unit group */
+    memberCount: number;
+  };
+  CreateConnectedUnitModel: {
+    /** The connected unit id */
+    unitId: string;
+  };
+  CreatePropertyModel: {
+    /** The code for the property that can be shown in reports and table views */
+    code: string;
+    /** The name for the property */
+    name: { [key: string]: string };
+    /** The legal name of the company running the property. */
+    companyName: string;
+    /** The managing director(s) of the company, as they should appear on invoices */
+    managingDirectors?: string;
+    /** The entry in the Commercial Reigster of the company running the property, as it should appear on invoices */
+    commercialRegisterEntry: string;
+    /** The Tax-ID of the company running the property, as it should appear on invoices */
+    taxId: string;
+    /** The description for the property */
+    description?: { [key: string]: string };
+    location: definitions["CreateAddressModel"];
+    bankAccount?: definitions["BankAccountModel"];
+    /** The payment terms used for all rate plans */
+    paymentTerms: { [key: string]: string };
+    /**
+     * The time zone name of the property from the IANA Time Zone Database.
+     * (see: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+     */
+    timeZone: string;
+    /** The default check-in time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    defaultCheckInTime: string;
+    /** The default check-out time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    defaultCheckOutTime: string;
+    /** The currency a property works with. */
+    currencyCode: string;
+  };
+  CreateUnitAttributeDefinitionModel: {
+    /** The name of the unit attribute */
+    name: string;
+    /** The description of the unit attribute */
+    description?: string;
+  };
+  CreateUnitAttributeModel: {
+    /** Id of unit attribute */
+    id: string;
+  };
+  CreateUnitGroupModel: {
+    /** The code for the unit group that can be shown in reports and table views */
+    code: string;
+    /** The id of the property where unit group will be created */
+    propertyId: string;
+    /** The name for the unit group */
+    name: { [key: string]: string };
+    /** The description for the unit group */
+    description: { [key: string]: string };
+    /** Maximum number of persons for the unit group */
+    maxPersons: number;
+    /**
+     * The unit group rank
+     * Restrictions:
+     * - Should be greater or equal to one
+     */
+    rank?: number;
+    /** The unit group type */
+    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot";
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["CreateConnectedUnitGroupModel"][];
+  };
+  CreateUnitModel: {
+    /** The id of the property where the unit will be created */
+    propertyId: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
+    description: { [key: string]: string };
+    /** The id of the unit group */
+    unitGroupId?: string;
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+    /** Condition of the unit */
+    condition?: "Clean" | "CleanToBeInspected" | "Dirty";
+    /** Collection of user defined attributes of unit */
+    attributes?: definitions["CreateUnitAttributeModel"][];
+    /** The list of units this unit is composed of */
+    connectedUnits?: definitions["CreateConnectedUnitModel"][];
+  };
+  EmbeddedPropertyModel: {
+    /** The property id */
+    id: string;
+    /** The code for the property that can be shown in reports and table views */
+    code?: string;
+    /** The name for the property */
+    name?: string;
+    /** The description for the property */
+    description?: string;
+  };
+  EmbeddedUnitGroupModel: {
+    /** The unit group id */
+    id: string;
+    /** The code for the unit group that can be shown in reports and table views */
+    code?: string;
+    /** The name for the unit group */
+    name?: string;
+    /** The description for the unit group */
+    description?: string;
+    /** The unit group type */
+    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
+  };
+  EmbeddedUnitModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name?: string;
+    /** The description for the unit */
+    description?: string;
+    /** The unit group id */
+    unitGroupId?: string;
+  };
+  MessageItemCollection: {
+    messages?: string[];
+  };
+  Operation: {
+    value?: { [key: string]: unknown };
+    path?: string;
+    op?: string;
+    from?: string;
+  };
+  PropertyCreatedModel: {
+    /** The property id */
+    id: string;
   };
   PropertyItemModel: {
     /** The property id */
@@ -175,62 +404,13 @@ export interface definitions {
     status: "Test" | "Live";
     /** Is the property archived */
     isArchived: boolean;
+    /** The list of actions for this property */
+    actions?: definitions["ActionModel[PropertyAction,NotAllowedPropertyActionReason]"][];
   };
   PropertyListModel: {
     /** List of properties */
     properties: definitions["PropertyItemModel"][];
     /** Total count of items */
-    count: number;
-  };
-  MessageItemCollection: {
-    messages?: string[];
-  };
-  CreateAddressModel: {
-    addressLine1: string;
-    addressLine2?: string;
-    postalCode: string;
-    city: string;
-    /** The ISO 3166-2 code */
-    regionCode?: string;
-    /** The country code, in ISO 3166-1 alpha-2 code */
-    countryCode: string;
-  };
-  CreatePropertyModel: {
-    /** The code for the property that can be shown in reports and table views */
-    code: string;
-    /** The name for the property */
-    name: { [key: string]: string };
-    /** The legal name of the company running the property. */
-    companyName: string;
-    /** The managing director(s) of the company, as they should appear on invoices */
-    managingDirectors?: string;
-    /** The entry in the Commercial Reigster of the company running the property, as it should appear on invoices */
-    commercialRegisterEntry: string;
-    /** The Tax-ID of the company running the property, as it should appear on invoices */
-    taxId: string;
-    /** The description for the property */
-    description?: { [key: string]: string };
-    location: definitions["CreateAddressModel"];
-    bankAccount?: definitions["BankAccountModel"];
-    /** The payment terms used for all rate plans */
-    paymentTerms: { [key: string]: string };
-    /**
-     * The time zone name of the property from the IANA Time Zone Database.
-     * (see: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-     */
-    timeZone: string;
-    /** The default check-in time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    defaultCheckInTime: string;
-    /** The default check-out time<br />A time (without fractional second part) as defined in the <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    defaultCheckOutTime: string;
-    /** The currency a property works with. */
-    currencyCode: string;
-  };
-  PropertyCreatedModel: {
-    /** The property id */
-    id: string;
-  };
-  CountModel: {
     count: number;
   };
   /** With this request you can create a new property */
@@ -272,167 +452,43 @@ export interface definitions {
     status: "Test" | "Live";
     /** Is the property archived */
     isArchived: boolean;
+    /** The list of actions for this property */
+    actions?: definitions["ActionModel[PropertyAction,NotAllowedPropertyActionReason]"][];
   };
-  Operation: {
-    value?: { [key: string]: unknown };
-    path?: string;
-    op?: string;
-    from?: string;
+  ReplaceConnectedUnitGroupModel: {
+    /** The connected unit group id */
+    unitGroupId: string;
+    /** The number of units for this connected unit group */
+    memberCount: number;
   };
-  CountryListModel: {
-    /** List of ISO country codes. */
-    countryCodes: string[];
-  };
-  EmbeddedPropertyModel: {
-    /** The property id */
-    id: string;
-    /** The code for the property that can be shown in reports and table views */
-    code?: string;
-    /** The name for the property */
-    name?: string;
-    /** The description for the property */
-    description?: string;
-  };
-  EmbeddedUnitGroupModel: {
-    /** The unit group id */
-    id: string;
-    /** The code for the unit group that can be shown in reports and table views */
-    code?: string;
+  ReplaceUnitGroupModel: {
     /** The name for the unit group */
-    name?: string;
+    name: { [key: string]: string };
     /** The description for the unit group */
-    description?: string;
-    /** The unit group type */
-    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
-  };
-  UnitMaintenanceModel: {
-    /** The id for the scheduled maintenance */
-    id: string;
-    /** Date and time the scheduled maintenance window starts<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    from: string;
-    /** Date and time the scheduled maintenance window ends<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    to: string;
-    /**
-     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
-     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
-     * even under construction and should reduce the house count (OutOfInventory)
-     */
-    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
-    /** The description text for the maintenance */
-    description?: string;
-  };
-  UnitStatusModel: {
-    isOccupied: boolean;
-    condition: "Clean" | "CleanToBeInspected" | "Dirty";
-    maintenance?: definitions["UnitMaintenanceModel"];
-  };
-  UnitAttributeModel: {
-    /** Id of unit attribute */
-    id: string;
-    /** The name of the unit attribute */
-    name: string;
-    /** Description of unit attribute */
-    description?: string;
-  };
-  UnitModel: {
-    /** The unit id */
-    id: string;
-    /** The name for the unit */
-    name: string;
-    /** The description for the unit */
     description: { [key: string]: string };
-    property: definitions["EmbeddedPropertyModel"];
-    unitGroup?: definitions["EmbeddedUnitGroupModel"];
-    status: definitions["UnitStatusModel"];
-    /** Maximum number of persons for the unit */
-    maxPersons: number;
-    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    created: string;
-    /** Collection of user defined attributes of unit */
-    attributes?: definitions["UnitAttributeModel"][];
-  };
-  UnitItemMaintenanceModel: {
-    /** The id for the scheduled maintenance */
-    id: string;
     /**
-     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
-     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
-     * even under construction and should reduce the house count (OutOfInventory)
+     * Maximum number of persons for the unit group.
+     * If this value is increased, the surcharges for the related rate plans must be specified in order for the rate plans to be sellable for the new possible occupancies.
      */
-    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
+    maxPersons?: number;
+    /**
+     * The unit group rank
+     * Restrictions:
+     * - Should be greater or equal to one
+     */
+    rank?: number;
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["ReplaceConnectedUnitGroupModel"][];
   };
-  UnitItemStatusModel: {
-    isOccupied: boolean;
-    condition: "Clean" | "CleanToBeInspected" | "Dirty";
-    maintenance?: definitions["UnitItemMaintenanceModel"];
-  };
-  UnitItemModel: {
-    /** The unit id */
+  UnitAttributeDefinitionCreatedModel: {
+    /** The unit attribute id */
     id: string;
-    /** The name for the unit */
-    name: string;
-    /** The description for the unit */
-    description: string;
-    property: definitions["EmbeddedPropertyModel"];
-    unitGroup?: definitions["EmbeddedUnitGroupModel"];
-    status: definitions["UnitItemStatusModel"];
-    /** Maximum number of persons for the unit */
-    maxPersons: number;
-    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    created: string;
-    /** Collection of user defined attributes of unit */
-    attributes?: definitions["UnitAttributeModel"][];
   };
-  UnitListModel: {
-    /** List of units */
-    units: definitions["UnitItemModel"][];
+  UnitAttributeDefinitionListModel: {
+    /** List of unit attributes */
+    unitAttributes: definitions["UnitAttributeDefinitionModel"][];
     /** Total count of items */
     count: number;
-  };
-  CreateUnitAttributeModel: {
-    /** Id of unit attribute */
-    id: string;
-  };
-  CreateUnitModel: {
-    /** The id of the property where the unit will be created */
-    propertyId: string;
-    /** The name for the unit */
-    name: string;
-    /** The description for the unit */
-    description: { [key: string]: string };
-    /** The id of the unit group */
-    unitGroupId?: string;
-    /** Maximum number of persons for the unit */
-    maxPersons: number;
-    /** Condition of the unit */
-    condition?: "Clean" | "CleanToBeInspected" | "Dirty";
-    /** Collection of user defined attributes of unit */
-    attributes?: definitions["CreateUnitAttributeModel"][];
-  };
-  UnitCreatedModel: {
-    /** The unit id */
-    id: string;
-  };
-  BulkCreateUnitsModel: {
-    /** The id of the property where the units will be created - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    propertyId?: string;
-    /** The list of unit names - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    names?: string[];
-    /** The description, used for all units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    description?: { [key: string]: string };
-    /** The id of the unit group used for all units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    unitGroupId?: string;
-    /** Maximum number of persons for the units - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    maxPersons?: number;
-    /** Condition of the unit - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    condition?: "Clean" | "CleanToBeInspected" | "Dirty";
-    /** Collection of user defined attributes of unit - <b>DEPRECATED: This field will be removed at 15.08.2021. Use `Units` for creating in bulk instead</b> */
-    attributes?: definitions["CreateUnitAttributeModel"][];
-    units?: definitions["CreateUnitModel"][];
-  };
-  BulkUnitsCreatedModel: {
-    /** The unit ids */
-    ids: string[];
   };
   UnitAttributeDefinitionModel: {
     /** The id of the unit attribute */
@@ -442,41 +498,17 @@ export interface definitions {
     /** The description of the unit attribute */
     description?: string;
   };
-  UnitAttributeDefinitionListModel: {
-    /** List of unit attributes */
-    unitAttributes: definitions["UnitAttributeDefinitionModel"][];
-    /** Total count of items */
-    count: number;
-  };
-  CreateUnitAttributeDefinitionModel: {
+  UnitAttributeModel: {
+    /** Id of unit attribute */
+    id: string;
     /** The name of the unit attribute */
     name: string;
-    /** The description of the unit attribute */
+    /** Description of unit attribute */
     description?: string;
   };
-  UnitAttributeDefinitionCreatedModel: {
-    /** The unit attribute id */
+  UnitCreatedModel: {
+    /** The unit id */
     id: string;
-  };
-  CreateUnitGroupModel: {
-    /** The code for the unit group that can be shown in reports and table views */
-    code: string;
-    /** The id of the property where unit group will be created */
-    propertyId: string;
-    /** The name for the unit group */
-    name: { [key: string]: string };
-    /** The description for the unit group */
-    description: { [key: string]: string };
-    /** Maximum number of persons for the unit group */
-    maxPersons: number;
-    /**
-     * The unit group rank
-     * Restrictions:
-     * - Should be greater or equal to one
-     */
-    rank?: number;
-    /** The unit group type */
-    type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot";
   };
   UnitGroupCreatedModel: {
     /** The unit group id */
@@ -500,6 +532,8 @@ export interface definitions {
     /** The unit group type */
     type: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
     property: definitions["EmbeddedPropertyModel"];
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["ConnectedUnitGroupModel"][];
   };
   UnitGroupListModel: {
     /** List of unit groups */
@@ -507,7 +541,6 @@ export interface definitions {
     /** Total count of items */
     count: number;
   };
-  /** With this request you can create a new property */
   UnitGroupModel: {
     /** The unit group id */
     id: string;
@@ -526,23 +559,90 @@ export interface definitions {
     rank?: number;
     /** The unit group type */
     type: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["ConnectedUnitGroupModel"][];
   };
-  ReplaceUnitGroupModel: {
-    /** The name for the unit group */
-    name: { [key: string]: string };
-    /** The description for the unit group */
+  UnitItemMaintenanceModel: {
+    /** The id for the scheduled maintenance */
+    id: string;
+    /**
+     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
+     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
+     * even under construction and should reduce the house count (OutOfInventory)
+     */
+    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
+  };
+  UnitItemModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
+    description: string;
+    property: definitions["EmbeddedPropertyModel"];
+    unitGroup?: definitions["EmbeddedUnitGroupModel"];
+    connectingUnit?: definitions["EmbeddedUnitModel"];
+    status: definitions["UnitItemStatusModel"];
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    created: string;
+    /** Collection of user defined attributes of unit */
+    attributes?: definitions["UnitAttributeModel"][];
+    /** Collection of connected units */
+    connectedUnits?: definitions["ConnectedUnitModel"][];
+  };
+  UnitItemStatusModel: {
+    isOccupied: boolean;
+    condition: "Clean" | "CleanToBeInspected" | "Dirty";
+    maintenance?: definitions["UnitItemMaintenanceModel"];
+  };
+  UnitListModel: {
+    /** List of units */
+    units: definitions["UnitItemModel"][];
+    /** Total count of items */
+    count: number;
+  };
+  UnitMaintenanceModel: {
+    /** The id for the scheduled maintenance */
+    id: string;
+    /** Date and time the scheduled maintenance window starts<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    from: string;
+    /** Date and time the scheduled maintenance window ends<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    to: string;
+    /**
+     * The type of maintenance that is planned for the unit. A small repair (OutOfService),
+     * a bigger disfunction that does not allow to sell the unit (OutOfOrder) or is it
+     * even under construction and should reduce the house count (OutOfInventory)
+     */
+    type: "OutOfService" | "OutOfOrder" | "OutOfInventory";
+    /** The description text for the maintenance */
+    description?: string;
+  };
+  UnitModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
     description: { [key: string]: string };
-    /**
-     * Maximum number of persons for the unit group.
-     * If this value is increased, the surcharges for the related rate plans must be specified in order for the rate plans to be sellable for the new possible occupancies.
-     */
-    maxPersons?: number;
-    /**
-     * The unit group rank
-     * Restrictions:
-     * - Should be greater or equal to one
-     */
-    rank?: number;
+    property: definitions["EmbeddedPropertyModel"];
+    unitGroup?: definitions["EmbeddedUnitGroupModel"];
+    connectingUnit?: definitions["EmbeddedUnitModel"];
+    status: definitions["UnitStatusModel"];
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    created: string;
+    /** Collection of user defined attributes of unit */
+    attributes?: definitions["UnitAttributeModel"][];
+    /** Collection of connected units */
+    connectedUnits?: definitions["ConnectedUnitModel"][];
+  };
+  UnitStatusModel: {
+    isOccupied: boolean;
+    condition: "Clean" | "CleanToBeInspected" | "Dirty";
+    maintenance?: definitions["UnitMaintenanceModel"];
   };
 }
 
@@ -557,10 +657,12 @@ export interface operations {
         includeArchived?: boolean;
         /** Filter result by country code */
         countryCode?: string[];
-        /** Page number, starting from 1 and defaulting to 1. Results in 204 if there are no items on that page. */
+        /** Page number, 1-based. Default value is 1 (if this is not set or not positive). Results in 204 if there are no items on that page. */
         pageNumber?: number;
-        /** Page size. If this is not set, the pageNumber will be ignored and all values returned. */
+        /** Page size. If this is not set or not positive, the pageNumber is ignored and all items are returned. */
         pageSize?: number;
+        /** List of all embedded resources that should be expanded in the response. Possible values are: actions. All other values will be silently ignored. */
+        expand?: "actions"[];
       };
     };
     responses: {
@@ -665,6 +767,8 @@ export interface operations {
       query: {
         /** 'all' or comma separated list of two-letter language codes (ISO Alpha-2) */
         languages?: string[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: actions. All other values will be silently ignored. */
+        expand?: "actions"[];
       };
     };
     responses: {
@@ -762,6 +866,151 @@ export interface operations {
       503: unknown;
     };
   };
+  /**
+   * Use this call to clone a specific property.
+   * This operation creates a new property with inventory and rate plans from the specified property.<br>You must have at least one of these scopes: 'properties.create, setup.manage'.
+   */
+  "InventoryProperty-actionsByIdClonePost": {
+    parameters: {
+      path: {
+        /** The id of the property. */
+        id: string;
+      };
+      header: {
+        /**
+         * Unique key for safely retrying requests without accidentally performing the same operation twice.
+         * We'll always send back the same response for requests made with the same key,
+         * and keys can't be reused with different request parameters. Keys expire after 24 hours.
+         */
+        "Idempotency-Key"?: string;
+      };
+      body: {
+        /** The definition of the property. */
+        body: definitions["CreatePropertyModel"];
+      };
+    };
+    responses: {
+      /** Cloning of the existing property was successful. */
+      201: {
+        headers: {};
+        schema: definitions["PropertyCreatedModel"];
+      };
+      /** Bad request. */
+      400: unknown;
+      /** You are unauthorized. */
+      401: unknown;
+      /** Forbidden. */
+      403: unknown;
+      /** The Request-URI could not be found. */
+      404: unknown;
+      /** Unsupported media type. */
+      415: unknown;
+      /** Validation errors in the request body or query params. */
+      422: {
+        schema: definitions["MessageItemCollection"];
+      };
+      /** An unexpected error occurred. */
+      500: unknown;
+      /** The server is currently unavailable. Please try later. */
+      503: unknown;
+    };
+  };
+  /**
+   * Use this endpoint to archive an existing live property
+   * This operation set the IsArchived flag to true<br>You must have at least one of these scopes: 'properties.manage, setup.manage'.
+   */
+  "InventoryProperty-actionsByIdArchivePut": {
+    parameters: {
+      path: {
+        /** The id of the property */
+        id: string;
+      };
+    };
+    responses: {
+      /** No Content */
+      204: never;
+      /** Bad request. */
+      400: unknown;
+      /** You are unauthorized. */
+      401: unknown;
+      /** Forbidden. */
+      403: unknown;
+      /** The Request-URI could not be found. */
+      404: unknown;
+      /** Validation errors in the request body or query params. */
+      422: {
+        schema: definitions["MessageItemCollection"];
+      };
+      /** An unexpected error occurred. */
+      500: unknown;
+      /** The server is currently unavailable. Please try later. */
+      503: unknown;
+    };
+  };
+  /**
+   * Use this endpoint to move an existing test property to live
+   * This operation changes the property status to 'Live'<br>You must have at least one of these scopes: 'properties.manage, setup.manage'.
+   */
+  "InventoryProperty-actionsByIdSet-livePut": {
+    parameters: {
+      path: {
+        /** The id of the property */
+        id: string;
+      };
+    };
+    responses: {
+      /** No Content */
+      204: never;
+      /** Bad request. */
+      400: unknown;
+      /** You are unauthorized. */
+      401: unknown;
+      /** Forbidden. */
+      403: unknown;
+      /** The Request-URI could not be found. */
+      404: unknown;
+      /** Validation errors in the request body or query params. */
+      422: {
+        schema: definitions["MessageItemCollection"];
+      };
+      /** An unexpected error occurred. */
+      500: unknown;
+      /** The server is currently unavailable. Please try later. */
+      503: unknown;
+    };
+  };
+  /**
+   * Use this endpoint to delete all transactional data related to some test property
+   * This operation deletes all transactional data related to the specified property. The property must be in 'Test' status.<br>You must have at least one of these scopes: 'properties.manage, setup.manage'.
+   */
+  "InventoryProperty-actionsByIdResetPut": {
+    parameters: {
+      path: {
+        /** The id of the property */
+        id: string;
+      };
+    };
+    responses: {
+      /** No Content */
+      204: never;
+      /** Bad request. */
+      400: unknown;
+      /** You are unauthorized. */
+      401: unknown;
+      /** Forbidden. */
+      403: unknown;
+      /** The Request-URI could not be found. */
+      404: unknown;
+      /** Validation errors in the request body or query params. */
+      422: {
+        schema: definitions["MessageItemCollection"];
+      };
+      /** An unexpected error occurred. */
+      500: unknown;
+      /** The server is currently unavailable. Please try later. */
+      503: unknown;
+    };
+  };
   /** Returns a list of ISO country codes that could be used to create properties.<br>You need to be authorized (no particular scope required) */
   InventoryTypesCountriesGet: {
     responses: {
@@ -797,8 +1046,8 @@ export interface operations {
       query: {
         /** 'all' or comma separated list of two-letter language codes (ISO Alpha-2) */
         languages?: string[];
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup. All other values will be silently ignored. */
-        expand?: ("property" | "unitGroup")[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup, connectedUnits. All other values will be silently ignored. */
+        expand?: ("property" | "unitGroup" | "connectedUnits")[];
       };
     };
     responses: {
@@ -930,8 +1179,10 @@ export interface operations {
       query: {
         /** Return units for specific property */
         propertyId?: string;
-        /** Return units for the specific unit group */
+        /** Return units for the specific unit group - <b>DEPRECATED: This property will be removed 20.04.2022. Use `UnitGroupIds` instead</b> */
         unitGroupId?: string;
+        /** Return units with the specific unit groups */
+        unitGroupIds?: string[];
         /** Return units with the specific unit attributes */
         unitAttributeIds?: string[];
         /** Return only occupied or vacant units */
@@ -940,12 +1191,14 @@ export interface operations {
         maintenanceType?: "OutOfService" | "OutOfOrder" | "OutOfInventory";
         /** Return units with a specific condition */
         condition?: "Clean" | "CleanToBeInspected" | "Dirty";
-        /** Page number, starting from 1 and defaulting to 1. Results in 204 if there are no items on that page. */
+        /** This will filter all units where the provided text is contained in the unit name. The search is case insensitive. */
+        textSearch?: string;
+        /** Page number, 1-based. Default value is 1 (if this is not set or not positive). Results in 204 if there are no items on that page. */
         pageNumber?: number;
-        /** Page size. If this is not set, the pageNumber will be ignored and all values returned. */
+        /** Page size. If this is not set or not positive, the pageNumber is ignored and all items are returned. */
         pageSize?: number;
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup. All other values will be silently ignored. */
-        expand?: ("property" | "unitGroup")[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup, connectedUnits. All other values will be silently ignored. */
+        expand?: ("property" | "unitGroup" | "connectedUnits")[];
       };
     };
     responses: {
@@ -1064,8 +1317,10 @@ export interface operations {
       query: {
         /** Return units for specific property */
         propertyId?: string;
-        /** Return units for the specific unit group */
+        /** Return units for the specific unit group - <b>DEPRECATED: This property will be removed 20.04.2022. Use `UnitGroupIds` instead</b> */
         unitGroupId?: string;
+        /** Return units with the specific unit groups */
+        unitGroupIds?: string[];
         /** Return units with the specific unit attributes */
         unitAttributeIds?: string[];
         /** Return only occupied or vacant units */
@@ -1074,6 +1329,8 @@ export interface operations {
         maintenanceType?: "OutOfService" | "OutOfOrder" | "OutOfInventory";
         /** Return units with a specific condition */
         condition?: "Clean" | "CleanToBeInspected" | "Dirty";
+        /** This will filter all units where the provided text is contained in the unit name. The search is case insensitive. */
+        textSearch?: string;
       };
     };
     responses: {
@@ -1239,7 +1496,7 @@ export interface operations {
       };
     };
     responses: {
-      /** Success */
+      /** No Content */
       204: never;
       /** Bad request. */
       400: unknown;
@@ -1265,9 +1522,9 @@ export interface operations {
   "InventoryUnit-attributesGet": {
     parameters: {
       query: {
-        /** Page number, starting from 1 and defaulting to 1. Results in 204 if there are no items on that page. */
+        /** Page number, 1-based. Default value is 1 (if this is not set or not positive). Results in 204 if there are no items on that page. */
         pageNumber?: number;
-        /** Page size. If this is not set, the pageNumber will be ignored and all values returned. */
+        /** Page size. If this is not set or not positive, the pageNumber is ignored and all items are returned. */
         pageSize?: number;
       };
     };
@@ -1344,12 +1601,19 @@ export interface operations {
       query: {
         /** Return unit groups for specific property */
         propertyId?: string;
-        /** Page number, starting from 1 and defaulting to 1. Results in 204 if there are no items on that page. */
+        unitGroupTypes?: (
+          | "BedRoom"
+          | "MeetingRoom"
+          | "EventSpace"
+          | "ParkingLot"
+          | "Other"
+        )[];
+        /** Page number, 1-based. Default value is 1 (if this is not set or not positive). Results in 204 if there are no items on that page. */
         pageNumber?: number;
-        /** Page size. If this is not set, the pageNumber will be ignored and all values returned. */
+        /** Page size. If this is not set or not positive, the pageNumber is ignored and all items are returned. */
         pageSize?: number;
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property. All other values will be silently ignored. */
-        expand?: "property"[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, connectedUnitGroups. All other values will be silently ignored. */
+        expand?: ("property" | "connectedUnitGroups")[];
       };
     };
     responses: {
@@ -1425,6 +1689,13 @@ export interface operations {
       query: {
         /** Return unit groups for specific property */
         propertyId?: string;
+        unitGroupTypes?: (
+          | "BedRoom"
+          | "MeetingRoom"
+          | "EventSpace"
+          | "ParkingLot"
+          | "Other"
+        )[];
       };
     };
     responses: {
@@ -1460,8 +1731,8 @@ export interface operations {
       query: {
         /** 'all' or comma separated list of two-letter language codes (ISO Alpha-2) */
         languages?: string[];
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property. All other values will be silently ignored. */
-        expand?: "property"[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, connectedUnitGroups. All other values will be silently ignored. */
+        expand?: ("property" | "connectedUnitGroups")[];
       };
     };
     responses: {

@@ -46,7 +46,7 @@ export interface definitions {
     email: string;
     /** Properties that user has access to. If the user is invited as account admin, this will be ignored. */
     properties?: string[];
-    /** If set to {true}, user has full access to all properties. Defaults to false. */
+    /** If set to `true`, user has full access to all properties. Defaults to false. */
     isAccountAdmin?: boolean;
     /** Roles that user has access to. If the user is invited as account admin, this will be ignored. */
     roles?: (
@@ -81,7 +81,7 @@ export interface definitions {
     email: string;
     /** Properties that user has access to */
     properties?: string[];
-    /** If set to {true}, user has full access to all properties. */
+    /** If set to `true`, user has full access to all properties. */
     isAccountAdmin: boolean;
     /** Role this user is invited to. If more than one, returns the first. */
     role?:
@@ -157,9 +157,9 @@ export interface definitions {
     email: string;
     /** Properties that user has access to */
     properties?: definitions["PropertyRolesItemModel"][];
-    /** If set to {false}, the user is disabled for this account and cannot log in */
+    /** If set to `false`, the user is disabled for this account and cannot log in */
     enabled: boolean;
-    /** If set to {true}, user has full access to all properties. */
+    /** If set to `true`, user has full access to all properties. */
     isAccountAdmin: boolean;
   };
   UserModel: {
@@ -171,9 +171,9 @@ export interface definitions {
     lastName: string;
     /** Email address, used as the login */
     email: string;
-    /** If set to {false}, the user is disabled for this account and cannot log in */
+    /** If set to `false`, the user is disabled for this account and cannot log in */
     enabled?: boolean;
-    /** If set to {true}, user has full access to all properties. */
+    /** If set to `true`, user has full access to all properties. */
     isAccountAdmin: boolean;
     /** List of properties to which user has access. */
     properties?: string[];
@@ -258,7 +258,7 @@ export interface operations {
       };
     };
     responses: {
-      /** Success */
+      /** No Content */
       204: never;
       /** Bad request. */
       400: unknown;
@@ -317,7 +317,7 @@ export interface operations {
       200: {
         schema: definitions["UsersListModel"];
       };
-      /** Success */
+      /** No Content */
       204: never;
       /** Bad request. */
       400: unknown;
