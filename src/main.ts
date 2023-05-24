@@ -34,6 +34,7 @@ export function onOpen(e: GoogleAppsScript.Events.AppsScriptEvent) {
   }
 
   menu.addItem("Open Receivables & Liabilities", "openORLSidebar").addToUi();
+  menu.addItem("City Tax Report", "openCityTaxSidebar").addToUi();
 
   if (authMode == ScriptApp.AuthMode.FULL) {
     openORLSidebar();
