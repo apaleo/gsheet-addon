@@ -161,6 +161,8 @@ export interface definitions {
     enabled: boolean;
     /** If set to `true`, user has full access to all properties. */
     isAccountAdmin: boolean;
+    /** If set to `true`, user is considered managed in external Identity Provider. */
+    isReadOnly: boolean;
   };
   UserModel: {
     /** Unique user identifier. */
@@ -175,6 +177,8 @@ export interface definitions {
     enabled?: boolean;
     /** If set to `true`, user has full access to all properties. */
     isAccountAdmin: boolean;
+    /** If set to `true`, user is considered managed in external Identity Provider. */
+    isReadOnly: boolean;
     /** List of properties to which user has access. */
     properties?: string[];
     /** List of properties to which user has access. */
