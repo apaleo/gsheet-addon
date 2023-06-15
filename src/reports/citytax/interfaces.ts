@@ -6,4 +6,4 @@ export interface BerlinCityTaxRowItemModel {
 }
 
 
-export enum CityTax { BERLIN, HAMBURG}
+export enum CityTax { BERLIN = 'BERLIN', HAMBURG = 'HAMBURG'}

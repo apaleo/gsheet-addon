@@ -7,6 +7,13 @@ export function addDays(date: string | Date, days: number) {
     return result;
 }
 
+export function startOf(date: Date) {
+    return date.toISOString().slice(0, 10) + "T00:00:00Z";
+}
+
+export function endOf(date: Date) {
+    return date.toISOString().slice(0, 10) + "T23:59:59Z";
+}
 
 export function getDates(startDate: string, stopDate: string) {
     const dateArray = [];

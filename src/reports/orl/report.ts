@@ -193,7 +193,9 @@ export function generateORLReport(
   const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const newSheetName = property + endDate;
   let datasheet = activeSpreadsheet.getSheetByName(newSheetName);
-  if (!datasheet) datasheet = activeSpreadsheet.insertSheet().setName(newSheetName);
+  if (!datasheet) {
+      datasheet = activeSpreadsheet.insertSheet().setName(newSheetName);
+  }
   datasheet.clear();
   datasheet.clearFormats();
   activeSpreadsheet.setActiveSheet(datasheet);

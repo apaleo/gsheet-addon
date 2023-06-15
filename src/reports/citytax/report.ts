@@ -4,9 +4,8 @@ import {getAccountTransactions, getReservations} from "api/data";
 import {BookingModels, FinanceModels} from "api/schema";
 
 
-export function generateCityTaxReport(city: string, property: string, startDate: string, endDate: string) {
-    const cityTax = CityTax[city as keyof typeof CityTax];
-    if (cityTax == CityTax.HAMBURG) {
+export function generateCityTaxReport(city: CityTax, property: string, startDate: string, endDate: string) {
+    if (city == CityTax.HAMBURG) {
         alert('Hamburg city tax report will be implemented soon!')
         return;
     }
@@ -17,7 +16,7 @@ export function generateCityTaxReport(city: string, property: string, startDate:
 
     const sheet = createSheetWithReportInfo(city, property, endDate, startDate);
 
-    switch (cityTax) {
+    switch (city) {
         case CityTax.BERLIN:
             generateBerlinCityTax(sheet, transactions, reservations);
             break;
@@ -25,9 +24,7 @@ export function generateCityTaxReport(city: string, property: string, startDate:
 }
 
 export function getCities() {
-    return Object.keys(CityTax).filter((item) => {
-        return isNaN(Number(item));
-    })
+    return Object.keys(CityTax);
 }
 
 function generateBerlinCityTax(sheet: GoogleAppsScript.Spreadsheet.Sheet, transactions: FinanceModels["AccountingTransactionModel"][], reservations: BookingModels["ReservationItemModel"][]) {
@@ -42,8 +39,10 @@ function generateBerlinCityTax(sheet: GoogleAppsScript.Spreadsheet.Sheet, transa
         .groupBy(value => value.source ?? value.channelCode)
         .map((value, key) => {
             const totalWithoutVat = _.sumBy(value, 'amount.amount') ?? 0;
-            const totalWithVat = (totalWithoutVat / 93 * 100) ?? 0;
-            const revenue = (totalWithVat / 5 * 100) ?? 0;
+            const totalWithoutVatPercentage = 93;
+            const totalWithVat = (totalWithoutVat / totalWithoutVatPercentage * 100) ?? 0;
+            const totalWithVatPercentage = 5;
+            const revenue = (totalWithVat / totalWithVatPercentage * 100) ?? 0;
             return {
                 channelCode: key,
                 cityTaxWithoutVat: totalWithoutVat,
@@ -78,7 +77,9 @@ function createSheetWithReportInfo(city: string, property: string, endDate: stri
     const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const newSheetName = `citytax_${city}_${property}_${endDate}`;
     let datasheet = activeSpreadsheet.getSheetByName(newSheetName);
-    if (!datasheet) datasheet = activeSpreadsheet.insertSheet().setName(newSheetName);
+    if (!datasheet) {
+        datasheet = activeSpreadsheet.insertSheet().setName(newSheetName);
+    }
     datasheet.clear();
     datasheet.clearFormats();
     activeSpreadsheet.setActiveSheet(datasheet);

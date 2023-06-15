@@ -1,6 +1,7 @@
 import {getResponseBody} from "./utils";
 import {getClient} from "./auth";
 import {IdentityModels, InventoryModels, ReportsModels, FinanceModels, BookingModels} from "./schema";
+import {endOf, startOf} from "../shared";
 
 const apaleoApiUrl = "https://api.apaleo.com";
 
@@ -48,7 +49,7 @@ export function getAccountTransactions(property: string, accountCode: string, st
         ...defaultOptions, method: "post",
     };
 
-    const queryParams = ["propertyId=" + property, "accountNumber=" + accountCode, "from=" + startDate.toISOString().slice(0, 10) + "T00:00:00Z", "to=" + endDate.toISOString().slice(0, 10) + "T23:59:59Z",];
+    const queryParams = ["propertyId=" + property, "accountNumber=" + accountCode, "from=" + startOf(startDate), "to=" + endOf(endDate)];
 
     const client = getClient();
     const url = endpointUrl + "?" + queryParams.join("&");
@@ -61,9 +62,15 @@ export function getReservations(property: string, stayStartDate?: Date, stayEndD
     const endpointUrl = apaleoApiUrl + "/booking/v1/reservations";
 
     const queryParams = ["propertyId=" + property];
-    if (stayStartDate || stayEndDate) queryParams.push('dateFilter=Stay');
-    if (stayStartDate) queryParams.push('from=' + stayStartDate.toISOString().slice(0, 10) + "T00:00:00Z");
-    if (stayEndDate) queryParams.push('to=' + stayEndDate.toISOString().slice(0, 10) + "T23:59:59Z");
+    if (stayStartDate || stayEndDate) {
+        queryParams.push('dateFilter=Stay');
+    }
+    if (stayStartDate) {
+        queryParams.push('from=' + startOf(stayStartDate));
+    }
+    if (stayEndDate) {
+        queryParams.push('to=' + endOf(stayEndDate));
+    }
     const client = getClient();
     const url = endpointUrl + "?" + queryParams.join("&");
     const body = getResponseBody<BookingModels["ReservationListModel"]>(client.fetch(url, defaultOptions));
