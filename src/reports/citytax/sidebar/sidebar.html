@@ -15,11 +15,22 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intercom.js/0.1.4/intercom.min.js"></script>
 
-    <?!= include('reports/orl/sidebar/sidebar.stylesheet'); ?>
+    <?!= include('reports/citytax/sidebar/sidebar.stylesheet'); ?>
 </head>
 <body>
 <div id="app">
     <div v-if="context.isSignedIn">
+        <v-row>
+            <v-col cols="12">
+                <v-select
+                        :items="cities"
+                        id="city"
+                        label="City"
+                        name="city"
+                        v-model="selectedCity"
+                ></v-select>
+            </v-col>
+        </v-row>
         <v-row>
             <v-col cols="12">
                 <v-select
@@ -35,26 +46,6 @@
         <v-row>
             <v-col cols="12">
                 <Datepicker range v-model="dateRange" :enable-time-picker="false" placeholder="Select date range" auto-apply show-now-button required/>
-            </v-col>
-        </v-row>
-        <v-row>
-            <v-col cols="12">
-                <v-text-field
-                        label="Previous Datasheet"
-                        placeholder="Please enter sheet name"
-                        v-model="previousDatasheet"
-                ></v-text-field>
-                <span class="md-helper-text">Make use of previous calculated receivables and liabilities.</span>
-            </v-col>
-        </v-row>
-        <v-row>
-            <v-col cols="12">
-                <v-text-field
-                        label="Line# of last entry"
-                        type="number"
-                        v-model="previousLineNumber"
-                ></v-text-field>
-                <span class="md-helper-text">Enter # of last line with historic data in previous datasheet.</span>
             </v-col>
         </v-row>
         <v-row>
@@ -100,6 +91,6 @@
         isSignedIn: "<?= isSignedIn ?>" == "true",
     };
 </script>
-<?!= include('reports/orl/sidebar/sidebar.script'); ?>
+<?!= include('reports/citytax/sidebar/sidebar.script'); ?>
 </body>
 </html>

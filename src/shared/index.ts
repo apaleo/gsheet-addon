@@ -3,3 +3,4 @@ export * from './clock';
 export * from './format';
 export * from './include';
 export * from './round';
+export * from './date';

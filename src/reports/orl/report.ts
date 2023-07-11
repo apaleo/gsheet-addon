@@ -1,7 +1,10 @@
 import { getGrossTransactions } from 'api/data';
 import { ReportsModels } from 'api/schema';
-import { Clock, round } from 'shared';
+import {formattedExecutionTime, round} from 'shared';
 import { LRReportRowItemModel, VatInfo } from './interfaces';
+
+const REPORT_TABLE_STARTING_ROW_NUMBER = 5;
+const NUMARIC_COLUMNS_COUNT = 5;
 
 /**
  * Main function to generate "Open Receivables & Liabilities Report" (ORL Report).
@@ -11,16 +14,20 @@ import { LRReportRowItemModel, VatInfo } from './interfaces';
  * submit() {
  *      ...
  *      scriptService
- *         .generateORLReport(property, arrivalStr, departureStr)
+ *         .generateORLReport(property, arrivalStr, departureStr, previousDatasheet, previousLineNumber)
  *
  * @param {String} property Property code
  * @param {String} startDate The start date for the gross transactions list in the YYYY-MM-DD format.
  * @param {String} endDate The end date for the gross transactions list in the YYYY-MM-DD format
+ * @param previousDatasheet
+ * @param previousLineNumber
  */
 export function generateORLReport(
   property: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  previousDatasheet: string,
+  previousLineNumber: number
 ) {
   // const clock = new Clock();
 
@@ -134,6 +141,44 @@ export function generateORLReport(
     ...liabilitiesColumns.map((c) => r.liabilities[c.key] || 0),
   ]);
 
+
+    // Take receivables and liabilities from previous datasheet into account
+    // TODO: Improve this and handle the case when there's a difference between the number of columns (liabilitiesColumns).
+    if (previousLineNumber && previousDatasheet) {
+        const dataRangeNotation = previousDatasheet + "!A6:I" + previousLineNumber;
+        const oldDataRange = SpreadsheetApp.getActive().getRange(dataRangeNotation).getValues();
+        const rowLength = rows[0].length;
+        for (const oldRow of oldDataRange) {
+            const existingRow = rows.find(function (row) {
+                return String(row[0]).includes("/" + oldRow[0] + "/");
+            });
+            if (existingRow) {
+                existingRow[4] = Number(existingRow[4]) + Number(oldRow[4]);
+                existingRow[5] = Number(existingRow[5]) + Number(oldRow[5]);
+            } else {
+                const arr = new Array(rowLength - 6).fill(undefined);
+                rows.push([
+                    createHyperLinkForRecord(property, {
+                        liabilities: {total: 0},
+                        receivables: 0,
+                        transactions: [],
+                        id: oldRow[0],
+                        type: oldRow[3] === "External" ? "External" : "Guest"
+                    }),
+                    oldRow[1],
+                    oldRow[2],
+                    oldRow[3],
+                    oldRow[4],
+                    oldRow[5],
+                    ...arr
+                ]);
+            }
+            totals.receivables += oldRow[4];
+            totals.liabilities.total += oldRow[5];
+        }
+    }
+
+
   const totalRow = [
     "", // id
     "", // arrival
@@ -141,23 +186,29 @@ export function generateORLReport(
     "Total", // status
     round(totals.receivables),
     round(totals.liabilities.total),
-    ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key])),
+    ...liabilitiesColumns.map((c) => round(totals.liabilities[c.key] ?? 0)),
   ];
 
   // Logger.log(
   //   `Processed ${transactions.length} transactions - ${clock.check()}`
   // );
 
-  const datasheet = SpreadsheetApp.getActiveSheet();
+  const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const newSheetName = property + endDate;
+  let datasheet = activeSpreadsheet.getSheetByName(newSheetName);
+  if (!datasheet) {
+      datasheet = activeSpreadsheet.insertSheet().setName(newSheetName);
+  }
   datasheet.clear();
   datasheet.clearFormats();
+  activeSpreadsheet.setActiveSheet(datasheet);
 
   const firstCell = datasheet.getRange(1, 1);
   firstCell.setValue("Open Receivables & Liabilities Report").setFontSize(18);
 
   // Setting headers
   datasheet
-    .getRange(4, 1, 1, 6 + liabilitiesColumns.length)
+    .getRange(REPORT_TABLE_STARTING_ROW_NUMBER, 1, 1, 6 + liabilitiesColumns.length)
     .setValues([
       [
         "Reservation ID",
@@ -174,20 +225,26 @@ export function generateORLReport(
 
   // Push data at once into the sheet for performance reasons; Set summary at the end of the file for documentation
   if (rows.length) {
-    datasheet
-      .getRange(5, 1, rows.length, 6 + liabilitiesColumns.length)
+    const range = datasheet
+        .getRange(REPORT_TABLE_STARTING_ROW_NUMBER+1, 1, rows.length, rows[0].length);
+
+    activeSpreadsheet.setNamedRange(`ORLTableData`, range);
+    range
       .setValues(rows);
 
     datasheet.appendRow(totalRow);
 
     datasheet
-      .getRange(5, 5, rows.length + 1, 2 + liabilitiesColumns.length)
+      .getRange(REPORT_TABLE_STARTING_ROW_NUMBER+1, NUMARIC_COLUMNS_COUNT, rows.length + 1, rows[0].length - NUMARIC_COLUMNS_COUNT)
       .setNumberFormat("0.00");
   }
 
   datasheet
     .getRange(2, 1)
     .setValue(`for property ${property} from ${startDate} to ${endDate}`);
+  datasheet
+      .getRange(3, 1)
+      .setValue("Executed: " + formattedExecutionTime());
 
   datasheet.appendRow([" "]);
   datasheet.appendRow([

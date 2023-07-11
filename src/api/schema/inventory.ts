@@ -187,6 +187,36 @@ export interface definitions {
     /** The unit ids */
     ids: string[];
   };
+  ConnectedUnitGroupModel: {
+    /** The unit group id */
+    id: string;
+    /** The name for the unit group */
+    name: string;
+    /** The description for the unit group */
+    description: string;
+    /** The number of units taken from this connected unit group */
+    memberCount: number;
+    /** Maximum number of persons for the unit group */
+    maxPersons?: number;
+  };
+  ConnectedUnitModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name: string;
+    /** The description for the unit */
+    description: string;
+    /** The unit group id */
+    unitGroupId: string;
+    /** The current status of the unit */
+    condition: "Clean" | "CleanToBeInspected" | "Dirty";
+    /** Maximum number of persons for the unit */
+    maxPersons: number;
+  };
+  BulkUnitsCreatedModel: {
+    /** The unit ids */
+    ids: string[];
+  };
   CountModel: {
     count: number;
   };
@@ -203,6 +233,16 @@ export interface definitions {
     regionCode?: string;
     /** The country code, in ISO 3166-1 alpha-2 code */
     countryCode: string;
+  };
+  CreateConnectedUnitGroupModel: {
+    /** The connected unit group id */
+    unitGroupId: string;
+    /** The number of units for this connected unit group */
+    memberCount: number;
+  };
+  CreateConnectedUnitModel: {
+    /** The connected unit id */
+    unitId: string;
   };
   CreatePropertyModel: {
     /** The code for the property that can be shown in reports and table views */
@@ -264,6 +304,8 @@ export interface definitions {
     rank?: number;
     /** The unit group type */
     type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot";
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["CreateConnectedUnitGroupModel"][];
   };
   CreateUnitModel: {
     /** The id of the property where the unit will be created */
@@ -280,6 +322,8 @@ export interface definitions {
     condition?: "Clean" | "CleanToBeInspected" | "Dirty";
     /** Collection of user defined attributes of unit */
     attributes?: definitions["CreateUnitAttributeModel"][];
+    /** The list of units this unit is composed of */
+    connectedUnits?: definitions["CreateConnectedUnitModel"][];
   };
   EmbeddedPropertyModel: {
     /** The property id */
@@ -302,6 +346,16 @@ export interface definitions {
     description?: string;
     /** The unit group type */
     type?: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
+  };
+  EmbeddedUnitModel: {
+    /** The unit id */
+    id: string;
+    /** The name for the unit */
+    name?: string;
+    /** The description for the unit */
+    description?: string;
+    /** The unit group id */
+    unitGroupId?: string;
   };
   MessageItemCollection: {
     messages?: string[];
@@ -405,6 +459,12 @@ export interface definitions {
     /** The list of actions for this property */
     actions?: definitions["ActionModel[PropertyAction,NotAllowedPropertyActionReason]"][];
   };
+  ReplaceConnectedUnitGroupModel: {
+    /** The connected unit group id */
+    unitGroupId: string;
+    /** The number of units for this connected unit group */
+    memberCount: number;
+  };
   ReplaceUnitGroupModel: {
     /** The name for the unit group */
     name: { [key: string]: string };
@@ -421,6 +481,23 @@ export interface definitions {
      * - Should be greater or equal to one
      */
     rank?: number;
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["ReplaceConnectedUnitGroupModel"][];
+    /**
+     * The time zone name of the property from the IANA Time Zone Database.
+     * (see: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+     */
+    timeZone: string;
+    /** The currency a property works with. */
+    currencyCode: string;
+    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
+    created: string;
+    /** The status of the property */
+    status: "Test" | "Live";
+    /** Is the property archived */
+    isArchived: boolean;
+    /** The list of actions for this property */
+    actions?: definitions["ActionModel[PropertyAction,NotAllowedPropertyActionReason]"][];
   };
   UnitAttributeDefinitionCreatedModel: {
     /** The unit attribute id */
@@ -474,6 +551,8 @@ export interface definitions {
     /** The unit group type */
     type: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
     property: definitions["EmbeddedPropertyModel"];
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["ConnectedUnitGroupModel"][];
   };
   UnitGroupListModel: {
     /** List of unit groups */
@@ -499,6 +578,8 @@ export interface definitions {
     rank?: number;
     /** The unit group type */
     type: "BedRoom" | "MeetingRoom" | "EventSpace" | "ParkingLot" | "Other";
+    /** The list of connected unit groups this unit group is composed of */
+    connectedUnitGroups?: definitions["ConnectedUnitGroupModel"][];
   };
   UnitItemMaintenanceModel: {
     /** The id for the scheduled maintenance */
@@ -526,6 +607,8 @@ export interface definitions {
     created: string;
     /** Collection of user defined attributes of unit */
     attributes?: definitions["UnitAttributeModel"][];
+    /** Collection of connected units */
+    connectedUnits?: definitions["ConnectedUnitModel"][];
   };
   UnitItemStatusModel: {
     isOccupied: boolean;
@@ -570,6 +653,8 @@ export interface definitions {
     created: string;
     /** Collection of user defined attributes of unit */
     attributes?: definitions["UnitAttributeModel"][];
+    /** Collection of connected units */
+    connectedUnits?: definitions["ConnectedUnitModel"][];
   };
   UnitStatusModel: {
     isOccupied: boolean;
@@ -978,8 +1063,8 @@ export interface operations {
       query: {
         /** 'all' or comma separated list of two-letter language codes (ISO Alpha-2) */
         languages?: string[];
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup. All other values will be silently ignored. */
-        expand?: ("property" | "unitGroup")[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup, connectedUnits. All other values will be silently ignored. */
+        expand?: ("property" | "unitGroup" | "connectedUnits")[];
       };
     };
     responses: {
@@ -1129,8 +1214,8 @@ export interface operations {
         pageNumber?: number;
         /** Page size. If this is not set or not positive, the pageNumber is ignored and all items are returned. */
         pageSize?: number;
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup. All other values will be silently ignored. */
-        expand?: ("property" | "unitGroup")[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, unitGroup, connectedUnits. All other values will be silently ignored. */
+        expand?: ("property" | "unitGroup" | "connectedUnits")[];
       };
     };
     responses: {
@@ -1533,12 +1618,19 @@ export interface operations {
       query: {
         /** Return unit groups for specific property */
         propertyId?: string;
+        unitGroupTypes?: (
+          | "BedRoom"
+          | "MeetingRoom"
+          | "EventSpace"
+          | "ParkingLot"
+          | "Other"
+        )[];
         /** Page number, 1-based. Default value is 1 (if this is not set or not positive). Results in 204 if there are no items on that page. */
         pageNumber?: number;
         /** Page size. If this is not set or not positive, the pageNumber is ignored and all items are returned. */
         pageSize?: number;
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property. All other values will be silently ignored. */
-        expand?: "property"[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, connectedUnitGroups. All other values will be silently ignored. */
+        expand?: ("property" | "connectedUnitGroups")[];
       };
     };
     responses: {
@@ -1614,6 +1706,13 @@ export interface operations {
       query: {
         /** Return unit groups for specific property */
         propertyId?: string;
+        unitGroupTypes?: (
+          | "BedRoom"
+          | "MeetingRoom"
+          | "EventSpace"
+          | "ParkingLot"
+          | "Other"
+        )[];
       };
     };
     responses: {
@@ -1649,8 +1748,8 @@ export interface operations {
       query: {
         /** 'all' or comma separated list of two-letter language codes (ISO Alpha-2) */
         languages?: string[];
-        /** List of all embedded resources that should be expanded in the response. Possible values are: property. All other values will be silently ignored. */
-        expand?: "property"[];
+        /** List of all embedded resources that should be expanded in the response. Possible values are: property, connectedUnitGroups. All other values will be silently ignored. */
+        expand?: ("property" | "connectedUnitGroups")[];
       };
     };
     responses: {

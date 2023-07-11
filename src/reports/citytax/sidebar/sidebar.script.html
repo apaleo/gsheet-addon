@@ -1,0 +1,124 @@
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                context: apaleoContext,
+                user: undefined,
+                cities: [],
+                selectedCity: undefined,
+                properties: [],
+                selectedProperty: undefined,
+                dateRange: undefined,
+                inProgress: false
+            }
+        },
+        methods: {
+            signIn() {
+                scriptService
+                    .getAuthorizationUrl()
+                    .then((url) => window.open(url))
+                    .catch((e) => this.onError(e));
+            },
+
+            signOut() {
+                scriptService
+                    .signOut()
+                    .then(() => this.context.isSignedIn = false);
+            },
+
+            init() {
+                this.inProgress = true;
+
+                (this.context.isCustomApp
+                        ? Promise.resolve({isCustomApp: true})
+                        : scriptService.getCurrentUserInfo()
+                ).then((user) => {
+                    this.user = user;
+                    return scriptService.getCities();
+                }).then((cities) => {
+                    this.cities = cities;
+                    return scriptService.getPropertyList();
+                })
+                    .then((data) => {
+                        this.properties = this.user && (
+                            (this.user.isAccountAdmin || this.user.isCustomApp)
+                                ? data
+                                : data.filter(p => this.user.properties.includes(p.code))
+                        ) || [];
+
+                        this.inProgress = false;
+                    })
+                    .catch((e) => this.onError(e));
+            },
+
+            submit() {
+                const city = this.selectedCity;
+                const property = this.selectedProperty;
+                const fromStr = getIsoDate(this.dateRange[0]);
+                const toStr = getIsoDate(this.dateRange[1]);
+                this.inProgress = true;
+                scriptService
+                    .generateCityTaxReport(city, property, fromStr, toStr)
+                    .then(() => this.inProgress = false)
+                    .catch((e) => this.onError(e));
+            },
+
+            onError(error) {
+                if (error) {
+                    scriptService.alert(error.message);
+                }
+
+                this.inProgress = false;
+            }
+        },
+        mounted() {
+            Intercom.getInstance().on('oauthComplete', (data) => {
+                this.context.isSignedIn = data.isSignedIn;
+                this.init();
+            });
+
+            if (this.context.isSignedIn) {
+                this.init();
+            }
+        },
+        components: {Datepicker: VueDatePicker}
+    });
+    const vuetify = Vuetify.createVuetify()
+    app.use(vuetify);
+    app.config.errorHandler = (err, vm, info) => {
+        // Show any error but this one
+        if (err.message !== "Cannot read property 'badInput' of undefined") {
+            console.error(err);
+        }
+    };
+
+    function ScriptService() {
+        const self = this;
+
+        Object.entries(google.script.run).forEach(([key, _]) => {
+            self[key] = promisify(key);
+        });
+    }
+
+    const scriptService = new ScriptService();
+
+    app.mount('#app')
+
+
+    function promisify(key) {
+        return function () {
+            const args = arguments;
+
+            return new Promise(function (resolve, reject) {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    [key].apply(google.script.run, args);
+            });
+        };
+    }
+
+    function getIsoDate(date) {
+        return date && luxon.DateTime.fromJSDate(date).toISODate();
+    }
+</script>
