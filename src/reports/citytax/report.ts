@@ -32,9 +32,7 @@ function generateBerlinCityTax(sheet: GoogleAppsScript.Spreadsheet.Sheet, transa
 
     const _ = lodash();
 
-    const transactionsWithReservations = _.map(transactions, function (item) {
-        return _.merge(item, _.find(reservations, {'id': item.reference}));
-    });
+    const transactionsWithReservations = _.map(transactions, item => _.merge(item, _.find(reservations, {'id': item.reference})));
     const summarizedData = _(transactionsWithReservations)
         .groupBy(value => value.source ?? value.channelCode)
         .map((value, key) => {
@@ -97,7 +95,7 @@ function createSheetWithReportInfo(city: string, property: string, endDate: stri
 }
 
 function getTransactions(property: string, transactionStartDate: Date, transactionEndDate: Date, startDate: string, endDate: string) {
-    let transactions = getAccountTransactions(property, 'CityTax_Reduced:7.00', transactionStartDate, transactionEndDate);
+    const transactions = getAccountTransactions(property, 'CityTax_Reduced:7.00', transactionStartDate, transactionEndDate);
     const reportDaysList = getDates(startDate, endDate).map(d => d.toISOString().slice(0, 10));
     return transactions.filter(transaction => transaction.command == "PostCharge" && reportDaysList.includes(transaction.date));
 }

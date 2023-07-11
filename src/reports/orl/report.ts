@@ -3,6 +3,9 @@ import { ReportsModels } from 'api/schema';
 import {formattedExecutionTime, round} from 'shared';
 import { LRReportRowItemModel, VatInfo } from './interfaces';
 
+const REPORT_TABLE_STARTING_ROW_NUMBER = 5;
+const NUMARIC_COLUMNS_COUNT = 5;
+
 /**
  * Main function to generate "Open Receivables & Liabilities Report" (ORL Report).
  * The report is based on the gross transaction list. Check {@link https://api.apaleo-staging.com/swagger/index.html?urls.primaryName=Reports%20NSFW|Apaleo API} for references.
@@ -205,7 +208,7 @@ export function generateORLReport(
 
   // Setting headers
   datasheet
-    .getRange(5, 1, 1, 6 + liabilitiesColumns.length)
+    .getRange(REPORT_TABLE_STARTING_ROW_NUMBER, 1, 1, 6 + liabilitiesColumns.length)
     .setValues([
       [
         "Reservation ID",
@@ -223,7 +226,7 @@ export function generateORLReport(
   // Push data at once into the sheet for performance reasons; Set summary at the end of the file for documentation
   if (rows.length) {
     const range = datasheet
-        .getRange(6, 1, rows.length, rows[0].length);
+        .getRange(REPORT_TABLE_STARTING_ROW_NUMBER+1, 1, rows.length, rows[0].length);
 
     activeSpreadsheet.setNamedRange(`ORLTableData`, range);
     range
@@ -232,7 +235,7 @@ export function generateORLReport(
     datasheet.appendRow(totalRow);
 
     datasheet
-      .getRange(6, 5, rows.length + 1, rows[0].length - 5)
+      .getRange(REPORT_TABLE_STARTING_ROW_NUMBER+1, NUMARIC_COLUMNS_COUNT, rows.length + 1, rows[0].length - NUMARIC_COLUMNS_COUNT)
       .setNumberFormat("0.00");
   }
 

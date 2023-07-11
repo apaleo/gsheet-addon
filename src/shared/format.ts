@@ -19,5 +19,6 @@ export function formattedExecutionTime() {
   const spreadSheetTimezone = SpreadsheetApp.getActive().getSpreadsheetTimeZone();
   const timezone = spreadSheetTimezone ? spreadSheetTimezone : "GMT";
   const formattedDate = Utilities.formatDate(new Date(), timezone, "EEE, d MMM yyyy, HH:mm");
+
   return formattedDate + " (" + timezone + ")";
 }

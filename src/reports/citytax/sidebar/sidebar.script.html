@@ -43,7 +43,7 @@
                         this.properties = this.user && (
                             (this.user.isAccountAdmin || this.user.isCustomApp)
                                 ? data
-                                : data.filter(p => this.user.properties.indexOf(p.code) != -1)
+                                : data.filter(p => this.user.properties.includes(p.code))
                         ) || [];
 
                         this.inProgress = false;
