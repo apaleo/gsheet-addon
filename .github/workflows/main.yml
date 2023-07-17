@@ -20,4 +20,4 @@ jobs:
           client-secret: ${{ secrets.CLASP_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CLASP_REFRESH_TOKEN }}
       - name: Updating the remote apps script project
-        run: yarn clasp push
+        run: yarn clasp push -f
