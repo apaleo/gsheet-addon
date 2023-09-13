@@ -609,7 +609,8 @@ export interface definitions {
       | "Expedia"
       | "Homelike"
       | "Hrs"
-      | "AltoVita";
+      | "AltoVita"
+      | "DesVu";
     /** Source of the reservation (e.g Hotels.com, Orbitz, etc.) */
     source?: string;
     paymentAccount?: definitions["PaymentAccountModel"];
@@ -737,7 +738,8 @@ export interface definitions {
       | "Expedia"
       | "Homelike"
       | "Hrs"
-      | "AltoVita";
+      | "AltoVita"
+      | "DesVu";
     /** Source of the reservation */
     source?: string;
     primaryGuest?: definitions["GuestModel"];
@@ -1362,7 +1364,8 @@ export interface definitions {
       | "Expedia"
       | "Homelike"
       | "Hrs"
-      | "AltoVita";
+      | "AltoVita"
+      | "DesVu";
     /** Source of the reservation (e.g Hotels.com, Orbitz, etc.) */
     source?: string;
     primaryGuest?: definitions["GuestModel"];
@@ -1460,7 +1463,8 @@ export interface definitions {
       | "Expedia"
       | "Homelike"
       | "Hrs"
-      | "AltoVita";
+      | "AltoVita"
+      | "DesVu";
     /** Source of the reservation (e.g Hotels.com, Orbitz, etc.) */
     source?: string;
     primaryGuest?: definitions["GuestModel"];
@@ -2249,6 +2253,7 @@ export interface operations {
           | "Homelike"
           | "Hrs"
           | "AltoVita"
+          | "DesVu"
         )[];
         /** Filter result by the external code. The result set will contain all bookings having reservations with external code starting with provided value */
         externalCode?: string;
@@ -2913,7 +2918,8 @@ export interface operations {
           | "Expedia"
           | "Homelike"
           | "Hrs"
-          | "AltoVita";
+          | "AltoVita"
+          | "DesVu";
         /** The promo code associated with a certain special offer */
         promoCode?: string;
         /** The code associated with a corporate rate */
@@ -2970,7 +2976,8 @@ export interface operations {
           | "Expedia"
           | "Homelike"
           | "Hrs"
-          | "AltoVita";
+          | "AltoVita"
+          | "DesVu";
         /** The number of adults you want offers for */
         adults: number;
         /** The ages of the children you want offers for */
@@ -3025,7 +3032,8 @@ export interface operations {
           | "Expedia"
           | "Homelike"
           | "Hrs"
-          | "AltoVita";
+          | "AltoVita"
+          | "DesVu";
         /** The number of adults you want offers for */
         adults: number;
         /** The ages of the children you want offers for */
@@ -3084,7 +3092,8 @@ export interface operations {
           | "Expedia"
           | "Homelike"
           | "Hrs"
-          | "AltoVita";
+          | "AltoVita"
+          | "DesVu";
         /** Page number, 1-based. Default value is 1 (if this is not set or not positive). Results in 204 if there are no items on that page. */
         pageNumber?: number;
         /** Page size. If this is not set or not positive, the pageNumber is ignored and all items are returned. */
@@ -3178,6 +3187,7 @@ export interface operations {
           | "Homelike"
           | "Hrs"
           | "AltoVita"
+          | "DesVu"
         )[];
         /** Filter result by source */
         sources?: string[];
@@ -3323,6 +3333,7 @@ export interface operations {
           | "Homelike"
           | "Hrs"
           | "AltoVita"
+          | "DesVu"
         )[];
         /** Filter result by source */
         sources?: string[];
@@ -3487,7 +3498,8 @@ export interface operations {
           | "Expedia"
           | "Homelike"
           | "Hrs"
-          | "AltoVita";
+          | "AltoVita"
+          | "DesVu";
         /** The promo code associated with a certain special offer, like corporate rate */
         promoCode?: string;
         /**
@@ -3543,7 +3555,8 @@ export interface operations {
           | "Expedia"
           | "Homelike"
           | "Hrs"
-          | "AltoVita";
+          | "AltoVita"
+          | "DesVu";
         /**
          * Depending on the postNextDay setting of a service it will by default be posted before or after midnight.
          * Breakfast is usually delivered on the next morning, so all the dates from the day after arrival to the departure day
