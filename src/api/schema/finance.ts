@@ -136,7 +136,7 @@ export interface paths {
   };
   "/finance/v1/folio-actions/{folioId}/move-payments": {
     /**
-     * Move payments from one folio of a reservation to another - moving between different reservations is not supported,
+     * Move payments from one guest/booking folio to another - moving between different bookings is not supported,
      * and will lead to an error. If one of the folios is closed, this action cannot be performed.<br />
      * The PSP reference, if present, will be removed when moving and only be persisted on the original payment.<br>You must have at least one of these scopes: 'charges.move, folios.manage'.
      */
@@ -405,7 +405,7 @@ export interface definitions {
     /** The reference for the transactions, reservation id for guest folios, folio id for external folios, property code for the house folio */
     reference: string;
     /** Does this transaction belong to a reservation, a house or an external folio */
-    referenceType: "House" | "Guest" | "External";
+    referenceType: "House" | "Guest" | "External" | "Booking";
     /** All transactions triggered by the same business transaction share one group number */
     entryGroupNumber: string;
   };
@@ -588,6 +588,8 @@ export interface definitions {
     guestAccounts: definitions["SlimFinanceAccountModel"][];
     /** The predefined list of external accounts of a property's subledger. */
     externalAccounts: definitions["SlimFinanceAccountModel"][];
+    /** The predefined list of booking accounts of a property's subledger. */
+    bookingAccounts: definitions["SlimFinanceAccountModel"][];
   };
   CommercialInfoModel: {
     registerEntry: string;
@@ -947,7 +949,8 @@ export interface definitions {
       | "CityTaxes"
       | "TransitoryItems"
       | "VatOnLiabilities"
-      | "LossOfAccountsReceivable";
+      | "LossOfAccountsReceivable"
+      | "SecondCityTax";
   };
   ExportGrossTransactionItemModel: {
     /** Timestamp with time zone information, when the booking was done<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
@@ -980,7 +983,7 @@ export interface definitions {
     /** The reference for the transactions, reservation id for guest folios, folio id for external folios, property code for the house folio */
     reference: string;
     /** Does this transaction belong to a reservation, a house or an external folio */
-    referenceType: "House" | "Guest" | "External";
+    referenceType: "House" | "Guest" | "External" | "Booking";
   };
   ExportGrossTransactionListModel: {
     /** List of transactions with all details. */
@@ -1015,7 +1018,8 @@ export interface definitions {
       | "CityTaxes"
       | "TransitoryItems"
       | "VatOnLiabilities"
-      | "LossOfAccountsReceivable";
+      | "LossOfAccountsReceivable"
+      | "SecondCityTax";
     /**
      * Indicates whether this account has children / sub accounts or not. The children can be retrieved via GET /accounts and querying
      * by parent.
@@ -1064,7 +1068,7 @@ export interface definitions {
     /** Date of update<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
     updated: string;
     /** The folio type */
-    type?: "House" | "Guest" | "External";
+    type?: "House" | "Guest" | "External" | "Booking";
     debitor?: definitions["FolioDebitorModel"];
     /** The date when the folio has been closed */
     closingDate?: string;
@@ -1073,6 +1077,8 @@ export interface definitions {
     /** Set to `true` if the folio has no unmoved [transitory] charges, unmoved payments, and allowances. */
     isEmpty?: boolean;
     reservation?: definitions["EmbeddedReservationModel"];
+    /** The id of the booking linked to this folio */
+    bookingId?: string;
     company?: definitions["EmbeddedCompanyModel"];
     balance: definitions["MonetaryValueModel"];
     /** Set to true, if the folio has been checked out on accounts receivable */
@@ -1136,11 +1142,13 @@ export interface definitions {
     /** Date of update<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
     updated: string;
     /** The folio type */
-    type?: "House" | "Guest" | "External";
+    type?: "House" | "Guest" | "External" | "Booking";
     debitor?: definitions["FolioDebitorModel"];
     /** The date when the folio has been closed */
     closingDate?: string;
     reservation?: definitions["EmbeddedReservationModel"];
+    /** The id of the booking linked to this folio */
+    bookingId?: string;
     company?: definitions["EmbeddedCompanyModel"];
     property: definitions["EmbeddedPropertyModel"];
     /** The list of charges */
@@ -1164,8 +1172,8 @@ export interface definitions {
     /** Set to `true` if the folio has no unmoved [transitory] charges, unmoved payments, and allowances. */
     isEmpty?: boolean;
     /**
-     * All folios that are related to this folio. Either because they belong to the same reservation, or because charges where moved
-     * between them. This is only set on folios of type 'guest'
+     * All folios that are related to this folio. Either because they belong to the same reservation/booking or
+     * charges were moved/routed between them. It is only set on folios of type 'guest', 'booking', and 'external'.
      */
     relatedFolios?: definitions["EmbeddedFolioModel"][];
     /** All invoices that have been created for this folio. This is only set on folios of type 'guest' */
@@ -1323,6 +1331,8 @@ export interface definitions {
     folioId: string;
     /** The reservation for this invoice */
     reservationId?: string;
+    /** The booking for this invoice */
+    bookingId?: string;
     /** The ID of the property */
     propertyId: string;
     /**
@@ -1847,7 +1857,8 @@ export interface definitions {
       | "CityTaxes"
       | "TransitoryItems"
       | "VatOnLiabilities"
-      | "LossOfAccountsReceivable";
+      | "LossOfAccountsReceivable"
+      | "SecondCityTax";
     /** Parent account number. Null for top-level accounts. */
     parentNumber?: string;
     /** Indicates whether this account has children / sub accounts or not. */
@@ -2008,7 +2019,7 @@ export interface operations {
         /** If set to `true`, only main folios are returned, otherwise all. */
         onlyMain?: boolean;
         /** The type of the folio */
-        type?: "House" | "Guest" | "External";
+        type?: "House" | "Guest" | "External" | "Booking";
         /**
          * Allows filtering external folios by code.
          * Useful when you use external folios with custom codes.
@@ -2140,7 +2151,7 @@ export interface operations {
         /** If set to `true`, only main folios are returned, otherwise all. */
         onlyMain?: boolean;
         /** The type of the folio */
-        type?: "House" | "Guest" | "External";
+        type?: "House" | "Guest" | "External" | "Booking";
         /**
          * Allows filtering external folios by code.
          * Useful when you use external folios with custom codes.
@@ -2867,7 +2878,7 @@ export interface operations {
     };
   };
   /**
-   * Move payments from one folio of a reservation to another - moving between different reservations is not supported,
+   * Move payments from one guest/booking folio to another - moving between different bookings is not supported,
    * and will lead to an error. If one of the folios is closed, this action cannot be performed.<br />
    * The PSP reference, if present, will be removed when moving and only be persisted on the original payment.<br>You must have at least one of these scopes: 'charges.move, folios.manage'.
    */
@@ -3649,6 +3660,8 @@ export interface operations {
         propertyIds?: string[];
         /** Filter by reservation IDs */
         reservationIds?: string[];
+        /** Filter by booking IDs */
+        bookingIds?: string[];
         /** Filter by folio IDs */
         folioIds?: string[];
         /** Find invoices for a recipient name or company. Provide at least three characters. */
@@ -3899,7 +3912,8 @@ export interface operations {
           | "CityTaxes"
           | "TransitoryItems"
           | "VatOnLiabilities"
-          | "LossOfAccountsReceivable";
+          | "LossOfAccountsReceivable"
+          | "SecondCityTax";
         /** Allows to override the default accounting schema. Only specify this, when you know what you are doing. */
         accountingSchema?: "Simple" | "Extended";
         /** The language for the the report (2-letter ISO code) */
@@ -3968,7 +3982,8 @@ export interface operations {
           | "CityTaxes"
           | "TransitoryItems"
           | "VatOnLiabilities"
-          | "LossOfAccountsReceivable";
+          | "LossOfAccountsReceivable"
+          | "SecondCityTax";
         /** Allows to override the default accounting schema. Only specify this, when you know what you are doing. */
         accountingSchema?: "Simple" | "Extended";
         /** The language for the the report (2-letter ISO code) */
@@ -4041,7 +4056,8 @@ export interface operations {
           | "CityTaxes"
           | "TransitoryItems"
           | "VatOnLiabilities"
-          | "LossOfAccountsReceivable";
+          | "LossOfAccountsReceivable"
+          | "SecondCityTax";
         /** Allows to override the default accounting schema. Only specify this, when you know what you are doing. */
         accountingSchema?: "Simple" | "Extended";
         /** The language for the the report */
@@ -4114,7 +4130,8 @@ export interface operations {
           | "CityTaxes"
           | "TransitoryItems"
           | "VatOnLiabilities"
-          | "LossOfAccountsReceivable";
+          | "LossOfAccountsReceivable"
+          | "SecondCityTax";
         /** Allows to override the default accounting schema. Only specify this, when you know what you are doing. */
         accountingSchema?: "Simple" | "Extended";
         /** The language for the the report */
@@ -4183,7 +4200,8 @@ export interface operations {
           | "CityTaxes"
           | "TransitoryItems"
           | "VatOnLiabilities"
-          | "LossOfAccountsReceivable";
+          | "LossOfAccountsReceivable"
+          | "SecondCityTax";
         /** Allows to override the default accounting schema. Only specify this, when you know what you are doing. */
         accountingSchema?: "Simple" | "Extended";
         /** The language for the the report (2-letter ISO code) */

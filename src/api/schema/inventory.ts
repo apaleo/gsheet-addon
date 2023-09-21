@@ -213,10 +213,6 @@ export interface definitions {
     /** Maximum number of persons for the unit */
     maxPersons: number;
   };
-  BulkUnitsCreatedModel: {
-    /** The unit ids */
-    ids: string[];
-  };
   CountModel: {
     count: number;
   };
@@ -483,21 +479,6 @@ export interface definitions {
     rank?: number;
     /** The list of connected unit groups this unit group is composed of */
     connectedUnitGroups?: definitions["ReplaceConnectedUnitGroupModel"][];
-    /**
-     * The time zone name of the property from the IANA Time Zone Database.
-     * (see: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
-     */
-    timeZone: string;
-    /** The currency a property works with. */
-    currencyCode: string;
-    /** Date of creation<br />A date and time (without fractional second part) in UTC or with UTC offset as defined in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO8601:2004</a> */
-    created: string;
-    /** The status of the property */
-    status: "Test" | "Live";
-    /** Is the property archived */
-    isArchived: boolean;
-    /** The list of actions for this property */
-    actions?: definitions["ActionModel[PropertyAction,NotAllowedPropertyActionReason]"][];
   };
   UnitAttributeDefinitionCreatedModel: {
     /** The unit attribute id */
@@ -600,6 +581,7 @@ export interface definitions {
     description: string;
     property: definitions["EmbeddedPropertyModel"];
     unitGroup?: definitions["EmbeddedUnitGroupModel"];
+    connectingUnit?: definitions["EmbeddedUnitModel"];
     status: definitions["UnitItemStatusModel"];
     /** Maximum number of persons for the unit */
     maxPersons: number;
@@ -646,6 +628,7 @@ export interface definitions {
     description: { [key: string]: string };
     property: definitions["EmbeddedPropertyModel"];
     unitGroup?: definitions["EmbeddedUnitGroupModel"];
+    connectingUnit?: definitions["EmbeddedUnitModel"];
     status: definitions["UnitStatusModel"];
     /** Maximum number of persons for the unit */
     maxPersons: number;

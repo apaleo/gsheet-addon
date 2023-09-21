@@ -96,7 +96,7 @@ export interface definitions {
   };
   CountryEntry: {
     /** 2 letter ISO country code */
-    countryCode: string;
+    countryCode?: string;
     number: number;
     percent: number;
     reservationIds?: string[];
@@ -132,16 +132,17 @@ export interface definitions {
       | "CityTaxes"
       | "TransitoryItems"
       | "VatOnLiabilities"
-      | "LossOfAccountsReceivable";
+      | "LossOfAccountsReceivable"
+      | "SecondCityTax";
   };
   GuestReportModel: {
     /** Total number for all guests. */
     total: number;
-    /** Breakdown by travel purpose. Data where the travel purpose is unknown is excluded. */
+    /** Breakdown by travel purpose. */
     travelPurposeBreakdown?: definitions["TravelPurposeEntry"][];
-    /** Breakdown by nationality. Data where the nationality is unknown is excluded. */
+    /** Breakdown by nationality. */
     nationalityBreakdown?: definitions["CountryEntry"][];
-    /** Breakdown by country of residence. Data where the country of residence is unknown is excluded. */
+    /** Breakdown by country of residence. */
     countryOfResidenceBreakdown?: definitions["CountryEntry"][];
   };
   InvoiceModel: {
@@ -434,7 +435,7 @@ export interface definitions {
     /** The reference for the transactions, reservation id for guest folios, folio id for external folios, property code for the house folio */
     reference: string;
     /** Does this transaction belong to a reservation, a house or an external folio */
-    referenceType: "House" | "Guest" | "External";
+    referenceType: "House" | "Guest" | "External" | "Booking";
   };
   TransactionsGrossExportListModel: {
     /** The list of gross transactions with additional metadata */
@@ -453,7 +454,7 @@ export interface definitions {
     departure: string;
   };
   TravelPurposeEntry: {
-    purpose: "Business" | "Leisure";
+    purpose?: "Business" | "Leisure";
     number: number;
     percent: number;
     reservationIds?: string[];
@@ -733,6 +734,7 @@ export interface operations {
           | "Homelike"
           | "Hrs"
           | "AltoVita"
+          | "DesVu"
         )[];
         /** The market segment IDs used to filter the retrieved data */
         marketSegmentIds?: string[];
