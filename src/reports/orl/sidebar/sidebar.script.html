@@ -96,7 +96,6 @@
 
   function ScriptService() {
     const self = this;
-
     Object.entries(google.script.run).forEach(([ key, _ ]) => {
       self[key] = promisify(key);
     });

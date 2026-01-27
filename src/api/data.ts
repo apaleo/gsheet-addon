@@ -1,95 +1,89 @@
-import {getResponseBody} from "./utils";
-import {getClient} from "./auth";
-import {IdentityModels, InventoryModels, ReportsModels, FinanceModels, BookingModels} from "./schema";
-import {endOf, startOf} from "../shared";
-
-const apaleoApiUrl = "https://api.apaleo.com";
-
-const defaultOptions: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
-    method: "get", muteHttpExceptions: true,
+// Compiled using @apaleo/gsheet-addon 1.0.0 (TypeScript 4.9.5)
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
-
+var exports = exports || {};
+var module = module || { exports: exports };
+"use strict";
+exports.getPropertyList = exports.getCurrentUserInfo = exports.APIData = void 0;
+//import {IdentityModels, InventoryModels, ReportsModels, FinanceModels, BookingModels} from "./schema";
+//import {DateUtility} from "../shared";
+//import {Auth} from "./auth";
+//import {APIUtility} from "./utils";
+var apaleoApiUrl = "https://api.apaleo.com";
+var defaultOptions = {
+    method: "get", muteHttpExceptions: true
+};
+var APIData = /** @class */ (function () {
+    function APIData() {
+    }
+    APIData.getGrossTransactions = function (property, startDate, endDate) {
+        var endpointUrl = apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
+        var options = __assign(__assign({}, defaultOptions), { method: "post" });
+        var queryParams = ["propertyId=" + property, "datefilter=" + "gte_" + startDate + "," + "lte_" + endDate,];
+        var client = Auth.getClient();
+        var url = endpointUrl + "?" + queryParams.join("&");
+        var body = APIUtility.getResponseBody(client.fetch(url, options));
+        return (body && body.transactions) || [];
+    };
+    APIData.getAccountTransactions = function (property, accountCode, startDate, endDate) {
+        var endpointUrl = apaleoApiUrl + "/finance/v1/accounts/export";
+        var options = __assign(__assign({}, defaultOptions), { method: "post" });
+        var queryParams = ["propertyId=" + property, "accountNumber=" + accountCode, "from=" + DateUtility.startOf(startDate), "to=" + DateUtility.endOf(endDate)];
+        var client = Auth.getClient();
+        var url = endpointUrl + "?" + queryParams.join("&");
+        var body = APIUtility.getResponseBody(client.fetch(url, options));
+        return (body && body.transactions) || [];
+    };
+    APIData.getReservations = function (property, stayStartDate, stayEndDate) {
+        var endpointUrl = apaleoApiUrl + "/booking/v1/reservations";
+        var queryParams = ["propertyId=" + property];
+        if (stayStartDate || stayEndDate) {
+            queryParams.push('dateFilter=Stay');
+        }
+        if (stayStartDate) {
+            queryParams.push('from=' + DateUtility.startOf(stayStartDate));
+        }
+        if (stayEndDate) {
+            queryParams.push('to=' + DateUtility.endOf(stayEndDate));
+        }
+        var client = Auth.getClient();
+        var url = endpointUrl + "?" + queryParams.join("&");
+        var body = APIUtility.getResponseBody(client.fetch(url, defaultOptions));
+        return (body && body.reservations) || [];
+    };
+    return APIData;
+}());
+exports.APIData = APIData;
 /**
  * Returns info about current user
  */
-export function getCurrentUserInfo() {
-    const identityUrl = "https://identity.apaleo.com";
-
-    const client = getClient();
-    const user = getResponseBody(client.fetch(`${identityUrl}/connect/userinfo`, defaultOptions));
-
+function getCurrentUserInfo() {
+    var identityUrl = "https://identity.apaleo.com";
+    var client = Auth.getClient();
+    var user = APIUtility.getResponseBody(client.fetch("".concat(identityUrl, "/connect/userinfo"), defaultOptions));
     if (!user || !user.sub) {
         throw new Error("User not found");
     }
-
-    const detailsUrl = `${identityUrl}/api/v1/users/${user.sub}`;
-
-    const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
-        ...defaultOptions, headers: {
-            Accept: "application/json",
-        },
-    };
-
-    return getResponseBody<IdentityModels["UserModel"]>(client.fetch(detailsUrl, options));
+    var detailsUrl = "".concat(identityUrl, "/api/v1/users/").concat(user.sub);
+    var options = __assign(__assign({}, defaultOptions), { headers: {
+            Accept: "application/json"
+        } });
+    return APIUtility.getResponseBody(client.fetch(detailsUrl, options));
 }
-
-export function getPropertyList() {
-    const url = apaleoApiUrl + "/inventory/v1/properties";
-
-    const client = getClient();
-    const body = getResponseBody<InventoryModels["PropertyListModel"]>(client.fetch(url, defaultOptions));
-
+exports.getCurrentUserInfo = getCurrentUserInfo;
+function getPropertyList() {
+    var url = apaleoApiUrl + "/inventory/v1/properties";
+    var client = Auth.getClient();
+    var body = APIUtility.getResponseBody(client.fetch(url, defaultOptions));
     return (body && body.properties) || [];
 }
-
-export function getAccountTransactions(property: string, accountCode: string, startDate: Date, endDate: Date) {
-    const endpointUrl = apaleoApiUrl + "/finance/v1/accounts/export";
-
-    const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
-        ...defaultOptions, method: "post",
-    };
-
-    const queryParams = ["propertyId=" + property, "accountNumber=" + accountCode, "from=" + startOf(startDate), "to=" + endOf(endDate)];
-
-    const client = getClient();
-    const url = endpointUrl + "?" + queryParams.join("&");
-    const body = getResponseBody<FinanceModels["AccountingTransactionListModel"]>(client.fetch(url, options));
-
-    return (body && body.transactions) || [];
-}
-
-export function getReservations(property: string, stayStartDate?: Date, stayEndDate?: Date) {
-    const endpointUrl = apaleoApiUrl + "/booking/v1/reservations";
-
-    const queryParams = ["propertyId=" + property];
-    if (stayStartDate || stayEndDate) {
-        queryParams.push('dateFilter=Stay');
-    }
-    if (stayStartDate) {
-        queryParams.push('from=' + startOf(stayStartDate));
-    }
-    if (stayEndDate) {
-        queryParams.push('to=' + endOf(stayEndDate));
-    }
-    const client = getClient();
-    const url = endpointUrl + "?" + queryParams.join("&");
-    const body = getResponseBody<BookingModels["ReservationListModel"]>(client.fetch(url, defaultOptions));
-
-    return (body && body.reservations) || [];
-}
-
-export function getGrossTransactions(property: string, startDate: string, endDate: string) {
-    const endpointUrl = apaleoApiUrl + "/reports/v0-nsfw/reports/gross-transactions";
-
-    const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
-        ...defaultOptions, method: "post",
-    };
-
-    const queryParams = ["propertyId=" + property, "datefilter=" + "gte_" + startDate + "," + "lte_" + endDate,];
-
-    const client = getClient();
-    const url = endpointUrl + "?" + queryParams.join("&");
-    const body = getResponseBody<ReportsModels["TransactionsGrossExportListModel"]>(client.fetch(url, options));
-
-    return (body && body.transactions) || [];
-}
+exports.getPropertyList = getPropertyList;

@@ -11,6 +11,11 @@
         "userSymbol": "LodashGS",
         "version": "6",
         "libraryId": "1SQ0PlSMwndIuOAgtVJdjxsuXueECtY9OGejVDS37ckSVbMll73EXf2PW"
+      },
+      {
+        "userSymbol": "Moment",
+        "libraryId": "15hgNOjKHUG4UtyZl9clqBbl23sDvWMS8pfDJOyIapZk5RBqwL3i-rlCo",
+        "version": "9"
       }
     ]
   },
@@ -21,7 +26,10 @@
   ],
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8",
-
+  "urlFetchWhitelist": [
+    "https://api.apaleo.com/",
+    "https://identity.apaleo.com/"
+  ],
   "addOns": {
     "common": {
       "name": "apaleo for Sheets",
