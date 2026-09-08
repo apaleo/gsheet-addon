@@ -14,37 +14,36 @@
  * limitations under the License.
  -->
 
- <html>
-  <head>
-    <base target="_top">
-    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/intercom.js/0.1.4/intercom.min.js"></script>
-  </head>
-  <body>
-    <h1><?= title ?></h1>
-    <? if (error) { ?>
-      <p> <span class="error-text">An error has occurred: <?= error ?>.</span></p>
-      <p>You may close this tab.</p>
-    <? } else if (isSignedIn) { ?>
-      <p> <span class="all-clear-text">Signed in!</span>
-        You may close this tab.</p>
-    <? } else { ?>
-      <p> <span class="error-text">Sign in failed.</span>
-        You may close this tab.</p>
-    <? } ?>
-  
-    <script>
-      var isSignedIn = '<?= isSignedIn ?>' == 'true';
-      var error = '<?= error ?>';
-  
-      var intercom = Intercom.getInstance();
-      intercom.emit('oauthComplete', {
-        isSignedIn: isSignedIn
-      });
-      if (window.top && !error) {
-        window.top.close();
-      }
-    </script>
-  </body>
-  </html>
-  
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intercom.js/0.1.4/intercom.min.js"></script>
+</head>
+<body>
+  <h1><?= title ?></h1>
+  <? if (error) { ?>
+    <p> <span class="error-text">An error has occurred: <?= error ?>.</span></p>
+    <p>You may close this tab.</p>
+  <? } else if (isSignedIn) { ?>
+    <p> <span class="all-clear-text">Signed in!</span>
+      You may close this tab.</p>
+  <? } else { ?>
+    <p> <span class="error-text">Sign in failed.</span>
+      You may close this tab.</p>
+  <? } ?>
+
+  <script>
+    var isSignedIn = '<?= isSignedIn ?>' == 'true';
+    var error = '<?= error ?>';
+
+    var intercom = Intercom.getInstance();
+    intercom.emit('oauthComplete', {
+      isSignedIn: isSignedIn
+    });
+    if (window.top && !error) {
+      window.top.close();
+    }
+  </script>
+</body>
+</html>
