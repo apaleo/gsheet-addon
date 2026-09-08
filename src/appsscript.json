@@ -21,7 +21,10 @@
   ],
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8",
-
+  "urlFetchWhitelist": [
+    "https://api.apaleo.com/",
+    "https://identity.apaleo.com/"
+  ],
   "addOns": {
     "common": {
       "name": "apaleo for Sheets",
@@ -30,7 +33,9 @@
         "https://app.apaleo.com",
         "https://identity.apaleo.com"
       ],
-      "homepageTrigger": { "enabled": false }
+      "homepageTrigger": {
+        "enabled": false
+      }
     },
     "sheets": {}
   }

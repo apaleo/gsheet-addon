@@ -1,21 +1,5 @@
-import { ReportsModels } from 'api/schema';
-
-export interface LRReportRowItemModel {
-  id: string;
-  type: "Guest" | "External";
-  arrival?: string;
-  departure?: string;
-  status?: string;
-  transactions: ReportsModels["TransactionsGrossExportListItemModel"][];
-  receivables: number;
-  liabilities: {
-    [vatType: string]: number;
-    total: number;
-  };
-}
-
-export interface VatInfo {
-  key: string;
-  type?: string;
-  percent?: number;
-}
+// Compiled using @apaleo/gsheet-addon 1.0.0 (TypeScript 4.9.5)
+var exports = exports || {};
+var module = module || { exports: exports };
+"use strict";
+//import { ReportsModels } from 'api/schema';

@@ -1,33 +1,37 @@
-import {__} from "lodash";
-
-
-export function addDays(date: string | Date, days: number) {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
-    return result;
-}
-
-export function startOf(date: Date) {
-    return date.toISOString().slice(0, 10) + "T00:00:00Z";
-}
-
-export function endOf(date: Date) {
-    return date.toISOString().slice(0, 10) + "T23:59:59Z";
-}
-
-export function getDates(startDate: string, stopDate: string) {
-    const dateArray = [];
-    let currentDate = new Date(startDate);
-    const endDate = new Date(stopDate);
-    while (currentDate <= endDate) {
-        dateArray.push(currentDate);
-        currentDate = addDays(currentDate, 1);
+// Compiled using @apaleo/gsheet-addon 1.0.0 (TypeScript 4.9.5)
+var exports = exports || {};
+var module = module || { exports: exports };
+"use strict";
+exports.DateUtility = void 0;
+//import {__} from "lodash";
+var DateUtility = /** @class */ (function () {
+    function DateUtility() {
     }
-    return dateArray;
-}
-
-
-export function lodash() {
-    // @ts-ignore
-    return LodashGS.load() as __;
-}
+    DateUtility.addDays = function (date, days) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    };
+    DateUtility.startOf = function (date) {
+        return date.toISOString().slice(0, 10) + "T00:00:00Z";
+    };
+    DateUtility.endOf = function (date) {
+        return date.toISOString().slice(0, 10) + "T23:59:59Z";
+    };
+    DateUtility.getDates = function (startDate, stopDate) {
+        var dateArray = [];
+        var currentDate = new Date(startDate);
+        var endDate = new Date(stopDate);
+        while (currentDate <= endDate) {
+            dateArray.push(currentDate);
+            currentDate = DateUtility.addDays(currentDate, 1);
+        }
+        return dateArray;
+    };
+    DateUtility.lodash = function () {
+        // @ts-ignore
+        return LodashGS.load();
+    };
+    return DateUtility;
+}());
+exports.DateUtility = DateUtility;
