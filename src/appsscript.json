@@ -38,7 +38,9 @@
         "https://app.apaleo.com",
         "https://identity.apaleo.com"
       ],
-      "homepageTrigger": { "enabled": false }
+      "homepageTrigger": {
+        "enabled": false
+      }
     },
     "sheets": {}
   }
