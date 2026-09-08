@@ -81,15 +81,14 @@ exports.APIData = APIData;
 function getCurrentUserInfo() {
     var identityUrl = "https://identity.apaleo.com";
     var client = Auth.getClient();
-    var user = APIUtility.getResponseBody(client.fetch("".concat(identityUrl, "/connect/userinfo"), defaultOptions));
-    if (!user || !user.sub) {
-        throw new Error("User not found");
-    }
-    var detailsUrl = "".concat(identityUrl, "/api/v1/users/").concat(user.sub);
     var options = __assign(__assign({}, defaultOptions), { headers: {
             Accept: "application/json"
         } });
-    return APIUtility.getResponseBody(client.fetch(detailsUrl, options));
+    var user = APIUtility.getResponseBody(client.fetch("".concat(identityUrl, "/api/v1/users/me"), options));
+    if (!user) {
+        throw new Error("User not found");
+    }
+    return user;
 }
 exports.getCurrentUserInfo = getCurrentUserInfo;
 function getPropertyList() {

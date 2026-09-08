@@ -26,6 +26,15 @@ var NUMARIC_COLUMNS_COUNT = 5;
 // limit for your busiest properties.
 var GROSS_TX_CHUNK_DAYS = 7;
 
+function parseYmd(ymd) {
+    var parts = String(ymd).split("-");
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+}
+function formatYmd(date) {
+    var month = date.getMonth() + 1;
+    var day = date.getDate();
+    return date.getFullYear() + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day;
+}
 /**
  * Fetches gross transactions for the full [startDate, endDate] range by
  * breaking it into fixed-size (default: weekly) windows instead of calendar
@@ -40,26 +49,17 @@ var GROSS_TX_CHUNK_DAYS = 7;
  * @returns {Array} Flat array of all transactions across the whole range
  */
 function fetchGrossTransactionsChunked(property, startDate, endDate) {
-    var moment = Moment.load();
     var data = [];
- 
-    var cursor = moment(startDate);
-    var finalEnd = moment(endDate);
- 
-    while (cursor.isSameOrBefore(finalEnd, 'day')) {
-        var chunkEnd = cursor.clone().add(GROSS_TX_CHUNK_DAYS - 1, 'days');
-        if (chunkEnd.isAfter(finalEnd)) {
-            chunkEnd = finalEnd.clone();
+    var cursor = parseYmd(startDate);
+    var finalEnd = parseYmd(endDate);
+    while (cursor.getTime() <= finalEnd.getTime()) {
+        var chunkEnd = DateUtility.addDays(cursor, GROSS_TX_CHUNK_DAYS - 1);
+        if (chunkEnd.getTime() > finalEnd.getTime()) {
+            chunkEnd = new Date(finalEnd.getTime());
         }
- 
-        var chunkStartStr = cursor.format('YYYY-MM-DD');
-        var chunkEndStr = chunkEnd.format('YYYY-MM-DD');
- 
-        data.push.apply(data, APIData.getGrossTransactions(property, chunkStartStr, chunkEndStr));
- 
-        cursor = chunkEnd.clone().add(1, 'day');
+        data.push.apply(data, APIData.getGrossTransactions(property, formatYmd(cursor), formatYmd(chunkEnd)));
+        cursor = DateUtility.addDays(chunkEnd, 1);
     }
- 
     return data;
 }
 
