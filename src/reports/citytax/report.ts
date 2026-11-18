@@ -406,10 +406,10 @@ function getHamburgBracketAndGuests(charge, guests) {
   };
 }
 
-// CHANGED: label calculated from the bracket instead of the old table
 function getAmountLabel(amount) {
   if (amount === 0) return "up to 10 Euro";
   var steps = amount / 1.2;
   if (Math.abs(steps - Math.round(steps)) > 0.01) return "Check manually";
+  if (Math.round(steps) === 1) return "10 to 50 Euro";
   return "up to " + Math.round(steps) * 50 + " Euro";
 }
